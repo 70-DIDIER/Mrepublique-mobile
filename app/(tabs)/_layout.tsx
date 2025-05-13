@@ -7,7 +7,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         headerStyle: {
-          backgroundColor: '#72815A',
+          backgroundColor: colors.primary,
         },
         headerTintColor: '#fff',
         tabBarActiveTintColor: colors.secondary, 
@@ -34,7 +34,7 @@ export default function TabLayout() {
         options={{
           title: 'Panier',
           tabBarIcon: ({ color }) => <Ionicons name="cart" size={24} color={color} />,
-          tabBarBadge: '1', // Exemple de badge (à dynamiser plus tard)
+          tabBarBadge: '3', // Exemple de badge (à dynamiser plus tard)
         }}
       />
       <Tabs.Screen

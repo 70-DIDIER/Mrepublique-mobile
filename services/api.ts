@@ -26,7 +26,7 @@ api.interceptors.response.use(
   }
 );
 
-// Récupérer tous les plats (et boissons)
+// Récupérer tous les plats 
 export const getDishes = () => api.get('/plats');
 
 // Récupérer les catégories uniques à partir des plats
