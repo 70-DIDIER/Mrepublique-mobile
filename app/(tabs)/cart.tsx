@@ -1,12 +1,14 @@
 // (tabs)/cart.tsx
 import React from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/constants/colors';
 import { useCart } from '../../context/CartContext';
+import { useRouter } from 'expo-router';
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity } = useCart();
+  const router = useRouter();
 
   // Calculer le total
   const total = cart.reduce((sum, item) => sum + (parseFloat(String(item.prix)) || 0) * item.quantity, 0);
@@ -17,10 +19,13 @@ export default function Cart() {
     return Platform.OS === 'android' ? imageUrl.replace('127.0.0.1', '10.0.2.2') : imageUrl;
   };
 
-  // Action pour le bouton "Payer"
+  // Rediriger vers l'écran de commande
   const handleCheckout = () => {
-    console.log('Paiement initié. Total:', total);
-    // À implémenter plus tard : logique de paiement
+    if (cart.length === 0) {
+      Alert.alert('Erreur', 'Votre panier est vide.');
+      return;
+    }
+    router.push('/commande');
   };
 
   return (
@@ -44,7 +49,7 @@ export default function Cart() {
                   />
                   <View style={styles.cartInfo}>
                     <Text style={styles.cartName}>AYIMOLOU</Text>
-                    <Text style={styles.cartDescription}>{'description' in item ? (item as any).description : 'Variante non disponible'}</Text>
+                    <Text style={styles.cartDescription}>{'description' in item ? (item as any).description || 'Variante non disponible' : 'Variante non disponible'}</Text>
                     <Text style={styles.cartPrice}>{item.prix} F CFA</Text>
                     <View style={styles.quantityContainer}>
                       <TouchableOpacity

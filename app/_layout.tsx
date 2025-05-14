@@ -6,6 +6,8 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="show" options={{ headerShown: false }} />
+        <Stack.Screen name="commande" options={{ headerShown: false }} />
+        <Stack.Screen name="paiement" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
     </CartProvider>
