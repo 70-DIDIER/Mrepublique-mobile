@@ -1,15 +1,22 @@
+// app/show.tsx
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { FlatList, Image, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Modal } from 'react-native';
+import { useRouter } from 'expo-router';
 import { API_URL } from '../constants/api';
 import { colors } from '../constants/colors';
 import { getDishes } from '../services/api';
+import { useCart } from '../context/CartContext';
 
 export default function Show() {
   const [dishes, setDishes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedDish, setSelectedDish] = useState<string | null>(null);
+  const { addToCart } = useCart();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchDishes = async () => {
@@ -46,10 +53,24 @@ export default function Show() {
   };
 
   const handleOrder = (dish: any) => {
-    console.log('Commande du plat:', dish.nom, dish.description);
+    addToCart({
+      id: dish.id.toString(),
+      nom: dish.nom || 'Nom inconnu',
+      prix: parseFloat(dish.prix) || 0,
+      image_url: dish.image_url || '',
+      quantity: 1,
+    });
+    // Afficher la modale avec le nom du plat
+    setSelectedDish(dish.nom);
+    setModalVisible(true);
+    console.log('Plat ajouté au panier:', dish.nom);
   };
 
-  // Filtrage des plats selon la recherche
+  const goToCart = () => {
+    setModalVisible(false);
+    router.push('/(tabs)/cart'); // Redirige vers l'onglet Panier
+  };
+
   const filteredDishes = dishes.filter(
     (dish) =>
       dish.nom?.toLowerCase().includes(search.toLowerCase()) ||
@@ -111,6 +132,38 @@ export default function Show() {
       ) : (
         <Text style={styles.message}>Aucun plat trouvé.</Text>
       )}
+
+      {/* Modale pour l'alerte */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Ionicons name="checkmark-circle" size={40} color="#859163" style={styles.modalIcon} />
+            <Text style={styles.modalTitle}>Succès</Text>
+            <Text style={styles.modalMessage}>
+              {selectedDish ? `${selectedDish} ajouté au panier !` : 'Plat ajouté au panier !'}
+            </Text>
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.viewCartButton]}
+                onPress={goToCart}
+              >
+                <Text style={styles.modalButtonText}>Voir le panier</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.closeButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Fermer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -193,5 +246,59 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: colors.text,
     backgroundColor: '#f5f5f5',
+  },
+  // Styles pour la modale
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalIcon: {
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: colors.secondary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  viewCartButton: {
+    backgroundColor: '#72815A',
+  },
+  closeButton: {
+    backgroundColor: '#859163',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

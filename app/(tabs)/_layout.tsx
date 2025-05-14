@@ -1,7 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { colors } from '@/constants/colors';
+import { useCart } from '../../context/CartContext';
+
 export default function TabLayout() {
+  const { cart } = useCart();
+
+  // Calculer le nombre total d'articles dans le panier
+  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+
   return (
     <Tabs
       screenOptions={{
@@ -10,7 +17,7 @@ export default function TabLayout() {
           backgroundColor: colors.primary,
         },
         headerTintColor: '#fff',
-        tabBarActiveTintColor: colors.secondary, 
+        tabBarActiveTintColor: colors.secondary,
         tabBarInactiveTintColor: '#ffffff',
         tabBarStyle: { backgroundColor: '#72815A' },
       }}
@@ -34,7 +41,8 @@ export default function TabLayout() {
         options={{
           title: 'Panier',
           tabBarIcon: ({ color }) => <Ionicons name="cart" size={24} color={color} />,
-          tabBarBadge: '3', // Exemple de badge (à dynamiser plus tard)
+          tabBarBadge: cartItemCount > 0 ? cartItemCount : undefined, // Badge dynamique
+          tabBarBadgeStyle: { backgroundColor: colors.secondary, color: '#fff' },
         }}
       />
       <Tabs.Screen
