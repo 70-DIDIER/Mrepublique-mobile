@@ -40,7 +40,7 @@ export default function Commande() {
     }
 
     setLoading(true);
-    const apiUrl = Platform.OS === 'android' ? 'http://10.0.2.2:8000/api/commandes' : 'http://127.0.0.1:8000/api/commandes';
+    const apiUrl = Platform.OS === 'android' ? 'http://10.0.201.76:8000/api/commandes' : 'http://127.0.0.1:8000/api/commandes';
 
     const commandData = {
       articles: cart.map(item => ({

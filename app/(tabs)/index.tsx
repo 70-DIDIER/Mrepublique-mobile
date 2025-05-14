@@ -1,17 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Dimensions,
   Image,
   Platform,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
+  Dimensions,
+  StatusBar,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyCarousel from '../../components/carousel';
@@ -19,8 +19,9 @@ import Header from '../../components/header-1';
 import NouveauxSection from '../../components/nouveauxsection';
 import { colors } from '../../constants/colors';
 import { getRandomDish } from '../../services/api';
+import { useRouter } from 'expo-router';
 
-const { height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const Index = () => {
   const [popularDish, setPopularDish] = useState<any>(null);
@@ -29,8 +30,8 @@ const Index = () => {
 
   useEffect(() => {
     const fetchPopular = async () => {
+      setLoadingPopular(true);
       try {
-        setLoadingPopular(true);
         const dish = await getRandomDish();
         console.log('Plat populaire récupéré :', dish);
         setPopularDish(dish);
@@ -40,108 +41,103 @@ const Index = () => {
         setLoadingPopular(false);
       }
     };
-
     fetchPopular();
   }, []);
 
   const getImageUrl = (imageUrl: string) => {
     if (!imageUrl) return 'https://via.placeholder.com/100';
-    if (Platform.OS === 'android') {
-      return imageUrl.replace('127.0.0.1', '10.0.2.2');
-    }
-    return imageUrl;
+    return Platform.OS === 'android' ? imageUrl.replace('127.0.0.1', '10.0.2.2') : imageUrl;
   };
 
   const handleCategoryPress = (category: string) => {
-    router.push(`/show?category=${category.toLowerCase()}`);
+    router.push({
+      pathname: '/show',
+      params: { category: category.toLowerCase() },
+    });
+  };
+
+  const handleDishPress = (id: string) => {
+    router.push(`/show/${id}`);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        barStyle="light-content"
-        translucent={false}
-        backgroundColor="#72815A"
-      />
-      <View style={styles.container}>
-        <Header />
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {/* Carousel */}
-          <View style={styles.carousel}>
-            <MyCarousel />
-          </View>
-
-          {/* Barre de recherche */}
-          <View style={styles.searchContainer}>
-            <TextInput
-              placeholder="Que cherchez-vous ?"
-              placeholderTextColor="#333"
-              style={styles.input}
-            />
-            <TouchableOpacity style={styles.searchButton}>
-              <Ionicons name="search" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Catégories */}
-          <View style={styles.categoriesContainer}>
-            <Text style={styles.title}>Catégories</Text>
-            <View style={styles.categories}>
-              {['Peti-Déjeuner', 'Déjeuner', 'Dinner', 'Boisson'].map((item, index) => (
+      <StatusBar barStyle="light-content" translucent={false} backgroundColor="#72815A" />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Header />
+          <View style={styles.content}>
+            {/* Carousel */}
+            <View style={styles.carousel}>
+              <MyCarousel />
+            </View>
+            {/* Barre de recherche */}
+            <View style={styles.searchContainer}>
+              <TextInput
+                placeholder="Que cherchez-vous ?"
+                placeholderTextColor="#333"
+                style={styles.input}
+              />
+              <TouchableOpacity style={styles.searchButton}>
+                <Ionicons name="search" size={20} color="white" />
+              </TouchableOpacity>
+            </View>
+            {/* Catégories */}
+            <View style={styles.categoriesContainer}>
+              <Text style={styles.title}>Catégories</Text>
+              <View style={styles.categories}>
+                {['Peti-Déjeuner', 'Déjeuner', 'Dinner', 'Boisson'].map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.categoryButton}
+                    onPress={() => handleCategoryPress(item)}
+                  >
+                    <Text style={styles.categoryText}>{item}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+            {/* Section Nouveaux */}
+            <View style={styles.section}>
+              <NouveauxSection />
+            </View>
+            {/* Section Populaire */}
+            <View style={styles.popularCardContainer}>
+              <Text style={styles.title}>Populaire</Text>
+              {loadingPopular ? (
+                <Text style={styles.loadingText}>Chargement...</Text>
+              ) : popularDish ? (
                 <TouchableOpacity
-                  key={index}
-                  style={styles.categoryButton}
-                  onPress={() => handleCategoryPress(item)}
+                  style={styles.popularCard}
+                  onPress={() => handleDishPress(popularDish.id)}
                 >
-                  <Text style={styles.categoryText}>{item}</Text>
+                  <View style={styles.popularContent}>
+                    <Text style={styles.popularTitle}>{popularDish.nom}</Text>
+                    <Text style={styles.popularDesc} numberOfLines={2}>{popularDish.description}</Text>
+                    <View style={styles.popularFooter}>
+                      <Text style={styles.popularPrice}>{popularDish.prix} FCFA</Text>
+                      <TouchableOpacity style={styles.buyButton}>
+                        <Text style={styles.buyButtonText}>Acheter</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <Image
+                    source={{ uri: getImageUrl(popularDish.image_url) }}
+                    style={styles.popularImage}
+                    resizeMode="cover"
+                  />
                 </TouchableOpacity>
-              ))}
+              ) : (
+                <Text style={styles.errorText}>Aucun plat populaire trouvé.</Text>
+              )}
             </View>
           </View>
-
-          {/* Nouveaux plats */}
-          <View style={styles.section}>
-            <NouveauxSection />
-          </View>
-
-          {/* Plat populaire */}
-          <View style={styles.popularCardContainer}>
-            <Text style={styles.title}>Populaire</Text>
-            {loadingPopular ? (
-              <Text style={styles.loadingText}>Chargement...</Text>
-            ) : popularDish ? (
-              <TouchableOpacity
-                style={styles.popularCard}
-                onPress={() => router.push(`/show/${popularDish.id}`)}
-              >
-                <View style={styles.popularContent}>
-                  <Text style={styles.popularTitle}>{popularDish.nom}</Text>
-                  <Text style={styles.popularDesc} numberOfLines={2}>
-                    {popularDish.description}
-                  </Text>
-                  <View style={styles.popularFooter}>
-                    <Text style={styles.popularPrice}>
-                      {popularDish.prix} FCFA
-                    </Text>
-                    <TouchableOpacity style={styles.buyButton}>
-                      <Text style={styles.buyButtonText}>Acheter</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                <Image
-                  source={{ uri: getImageUrl(popularDish.image_url) }}
-                  style={styles.popularImage}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-            ) : (
-              <Text style={styles.errorText}>
-                Aucun plat populaire trouvé.
-              </Text>
-            )}
-          </View>
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -157,8 +153,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9f9f9',
   },
-  scrollContainer: {
-    paddingBottom: 20,
+  scrollContent: {
+    flexGrow: 1,
+  },
+  header: {
+    backgroundColor: '#72815A',
+    width: '100%',
+  },
+  content: {
+    flex: 1,
   },
   carousel: {
     marginTop: 10,
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     overflow: 'hidden',
     marginHorizontal: 16,
-    marginVertical: 30,
+    marginVertical: 15,
   },
   input: {
     flex: 1,
