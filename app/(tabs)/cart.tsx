@@ -16,7 +16,7 @@ export default function Cart() {
   // Ajuster l'URL de l'image pour l'émulateur
   const getImageUrl = (imageUrl: string) => {
     if (!imageUrl) return 'https://via.placeholder.com/80';
-    return Platform.OS === 'android' ? imageUrl.replace('127.0.0.1', '10.0.2.2') : imageUrl;
+    return Platform.OS === 'android' ? imageUrl.replace('127.0.0.1', '10.0.201.76') : imageUrl;
   };
 
   // Rediriger vers l'écran de commande

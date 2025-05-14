@@ -27,8 +27,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 40, // Padding pour iOS (status bar)
-    paddingBottom: 10,
+    paddingTop: 10, // Padding pour iOS (status bar)
+    paddingBottom: 20,
     // borderTopLeftRadius: 20,
     // borderTopRightRadius: 20,
   },

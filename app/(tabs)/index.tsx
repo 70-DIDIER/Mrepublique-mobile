@@ -1,109 +1,168 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Image, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Dimensions,
+  Image,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import MyCarousel from '../../components/carousel';
 import Header from '../../components/header-1';
 import NouveauxSection from '../../components/nouveauxsection';
 import { colors } from '../../constants/colors';
 import { getRandomDish } from '../../services/api';
 
+const { height } = Dimensions.get('window');
+
 const Index = () => {
   const [popularDish, setPopularDish] = useState<any>(null);
   const [loadingPopular, setLoadingPopular] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPopular = async () => {
-      setLoadingPopular(true);
-      const dish = await getRandomDish();
-      console.log('Plat populaire récupéré :', dish);
-      setPopularDish(dish);
-      setLoadingPopular(false);
+      try {
+        setLoadingPopular(true);
+        const dish = await getRandomDish();
+        console.log('Plat populaire récupéré :', dish);
+        setPopularDish(dish);
+      } catch (error) {
+        console.error('Erreur lors de la récupération du plat populaire :', error);
+      } finally {
+        setLoadingPopular(false);
+      }
     };
+
     fetchPopular();
   }, []);
 
-  // Pour l'émulateur Android, corrige l'URL de l'image
   const getImageUrl = (imageUrl: string) => {
     if (!imageUrl) return 'https://via.placeholder.com/100';
-    return Platform.OS === 'android' ? imageUrl.replace('127.0.0.1', '10.0.2.2') : imageUrl;
+    if (Platform.OS === 'android') {
+      return imageUrl.replace('127.0.0.1', '10.0.2.2');
+    }
+    return imageUrl;
+  };
+
+  const handleCategoryPress = (category: string) => {
+    router.push(`/show?category=${category.toLowerCase()}`);
   };
 
   return (
-    <View style={styles.container}>
-      <Header />
-      {/* pour le carousel */}
-      <View style={styles.carousel}>
-        <MyCarousel />
-      </View>
-      {/* Barre de recherche */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Que cherchez vous ?"
-          placeholderTextColor="#333"
-          style={styles.input}
-        />
-        <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
-      {/* Catégories */}
-      <View>
-        <Text style={styles.title}>Catéogories</Text>
-        <View style={styles.categories}>
-          {['Peti-Déjeuner', 'Déjeuner', 'Dinner', 'Boisson'].map((item, index) => (
-            <TouchableOpacity key={index} style={styles.categoryButton}>
-              <Text style={styles.categoryText}>{item}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar
+        barStyle="light-content"
+        translucent={false}
+        backgroundColor="#72815A"
+      />
+      <View style={styles.container}>
+        <Header />
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {/* Carousel */}
+          <View style={styles.carousel}>
+            <MyCarousel />
+          </View>
+
+          {/* Barre de recherche */}
+          <View style={styles.searchContainer}>
+            <TextInput
+              placeholder="Que cherchez-vous ?"
+              placeholderTextColor="#333"
+              style={styles.input}
+            />
+            <TouchableOpacity style={styles.searchButton}>
+              <Ionicons name="search" size={20} color="white" />
             </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      {/* la partie nouveau */}
-      <View>
-        <NouveauxSection />
-      </View>
-      {/* la partie des plats populaires */}
-      <View style={styles.popularCardContainer}>
-        <Text style={styles.title}>Populaire</Text>
-        <View style={styles.popularCardContainer}>
-          {loadingPopular ? (
-            <Text>Chargement...</Text>
-          ) : popularDish ? (
-            <View style={styles.popularCard}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.popularTitle}>{popularDish.nom}</Text>
-                <Text style={styles.popularDesc} numberOfLines={2}>{popularDish.description}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-                  <Text style={styles.popularPrice}>{popularDish.prix} FCFA</Text>
-                  <TouchableOpacity style={styles.buyButton}>
-                    <Text style={styles.buyButtonText}>Acheter</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <Image
-                source={{ uri: getImageUrl(popularDish.image_url) }}
-                style={styles.popularImage}
-                resizeMode="cover"
-              />
+          </View>
+
+          {/* Catégories */}
+          <View style={styles.categoriesContainer}>
+            <Text style={styles.title}>Catégories</Text>
+            <View style={styles.categories}>
+              {['Peti-Déjeuner', 'Déjeuner', 'Dinner', 'Boisson'].map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.categoryButton}
+                  onPress={() => handleCategoryPress(item)}
+                >
+                  <Text style={styles.categoryText}>{item}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          ) : (
-            <Text>Aucun plat populaire trouvé.</Text>
-          )}
-        </View>
+          </View>
+
+          {/* Nouveaux plats */}
+          <View style={styles.section}>
+            <NouveauxSection />
+          </View>
+
+          {/* Plat populaire */}
+          <View style={styles.popularCardContainer}>
+            <Text style={styles.title}>Populaire</Text>
+            {loadingPopular ? (
+              <Text style={styles.loadingText}>Chargement...</Text>
+            ) : popularDish ? (
+              <TouchableOpacity
+                style={styles.popularCard}
+                onPress={() => router.push(`/show/${popularDish.id}`)}
+              >
+                <View style={styles.popularContent}>
+                  <Text style={styles.popularTitle}>{popularDish.nom}</Text>
+                  <Text style={styles.popularDesc} numberOfLines={2}>
+                    {popularDish.description}
+                  </Text>
+                  <View style={styles.popularFooter}>
+                    <Text style={styles.popularPrice}>
+                      {popularDish.prix} FCFA
+                    </Text>
+                    <TouchableOpacity style={styles.buyButton}>
+                      <Text style={styles.buyButtonText}>Acheter</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <Image
+                  source={{ uri: getImageUrl(popularDish.image_url) }}
+                  style={styles.popularImage}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.errorText}>
+                Aucun plat populaire trouvé.
+              </Text>
+            )}
+          </View>
+        </ScrollView>
       </View>
-    </View>
+    </SafeAreaView>
+  );
+};
 
-  )
-}
-
-export default Index
+export default Index;
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#72815A',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f9f9f9',
   },
+  scrollContainer: {
+    paddingBottom: 20,
+  },
   carousel: {
-    marginTop: 20,
+    marginTop: 10,
+    height: height * 0.25,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -112,12 +171,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     overflow: 'hidden',
     marginHorizontal: 16,
-    marginTop: 230,
-    marginBottom: 20,
+    marginVertical: 30,
   },
   input: {
     flex: 1,
     padding: 10,
+    fontSize: 16,
+    color: colors.text,
   },
   searchButton: {
     backgroundColor: '#859163',
@@ -125,34 +185,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 15,
   },
+  categoriesContainer: {
+    marginHorizontal: 10,
+    marginTop: 10,
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginLeft: 10,
+    marginLeft: 5,
     marginBottom: 10,
+    color: colors.text,
   },
   categories: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10, 
+    gap: 10,
+    marginHorizontal: 5,
   },
   categoryButton: {
     backgroundColor: '#859163',
     borderRadius: 5,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    marginRight: 10,
-    marginLeft: 10,
     marginBottom: 10,
   },
   categoryText: {
     color: 'white',
     fontWeight: '500',
+    fontSize: 14,
+  },
+  section: {
+    marginVertical: 10,
   },
   popularCardContainer: {
-    marginTop: 20,
+    marginVertical: 10,
     paddingHorizontal: 10,
-    paddingVertical: 10,
   },
   popularCard: {
     flexDirection: 'row',
@@ -165,6 +232,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    marginBottom: 10,
+  },
+  popularContent: {
+    flex: 1,
   },
   popularTitle: {
     fontWeight: 'bold',
@@ -176,6 +247,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#555',
     marginBottom: 8,
+  },
+  popularFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   popularPrice: {
     fontWeight: 'bold',
@@ -201,5 +276,14 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     backgroundColor: '#eee',
   },
-  
-})
+  loadingText: {
+    textAlign: 'center',
+    color: '#555',
+    fontSize: 16,
+  },
+  errorText: {
+    textAlign: 'center',
+    color: 'red',
+    fontSize: 16,
+  },
+});
