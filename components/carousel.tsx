@@ -6,9 +6,9 @@ import img1 from '../assets/images/img1.png';
 import img2 from '../assets/images/img2.png';
 import img3 from '../assets/images/img3.png';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 50; // Largeur de l'écran moins les marges (20px de chaque côté)
-const CARD_HEIGHT = height - 50; // Hauteur de la carte
+const CARD_HEIGHT = 200; // Réduction de la hauteur fixe
 const images = [img1, img2, img3];
 
 const MyCarousel = () => {

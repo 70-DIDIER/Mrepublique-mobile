@@ -1,17 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  Dimensions,
   Image,
+  KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Dimensions,
-  StatusBar,
-  KeyboardAvoidingView,
-  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyCarousel from '../../components/carousel';
@@ -19,9 +20,8 @@ import Header from '../../components/header-1';
 import NouveauxSection from '../../components/nouveauxsection';
 import { colors } from '../../constants/colors';
 import { getRandomDish } from '../../services/api';
-import { useRouter } from 'expo-router';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const Index = () => {
   const [popularDish, setPopularDish] = useState<any>(null);
@@ -59,6 +59,20 @@ const Index = () => {
   const handleDishPress = (id: string) => {
     router.push(`/show/${id}`);
   };
+//  l fonction  qui gère l'ajout au panier
+// const handleOrder = (dish: any) => {
+//     addToCart({
+//       id: dish.id.toString(),
+//       nom: dish.nom || 'Nom inconnu',
+//       prix: parseFloat(dish.prix) || 0,
+//       image_url: dish.image_url || '',
+//       quantity: 1,
+//     });
+//     // Afficher la modale avec le nom du plat
+//     setSelectedDish(dish.nom);
+//     setModalVisible(true);
+//     console.log('Plat ajouté au panier:', dish.nom);
+//   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -120,8 +134,11 @@ const Index = () => {
                     <Text style={styles.popularDesc} numberOfLines={2}>{popularDish.description}</Text>
                     <View style={styles.popularFooter}>
                       <Text style={styles.popularPrice}>{popularDish.prix} FCFA</Text>
-                      <TouchableOpacity style={styles.buyButton}>
+                      {/* <TouchableOpacity style={styles.buyButton}>
                         <Text style={styles.buyButtonText}>Acheter</Text>
+                      </TouchableOpacity> */}
+                      <TouchableOpacity style={styles.buyButton} >
+                        <Text style={styles.buyButtonText}>Commander</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -166,6 +183,7 @@ const styles = StyleSheet.create({
   carousel: {
     marginTop: 10,
     height: height * 0.25,
+    marginBottom: 15,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -175,10 +193,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginHorizontal: 16,
     marginVertical: 15,
+    backgroundColor: 'white',
   },
   input: {
     flex: 1,
-    padding: 10,
+    padding: 12,
     fontSize: 16,
     color: colors.text,
   },
@@ -189,7 +208,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   categoriesContainer: {
-    marginHorizontal: 10,
+    marginHorizontal: 16,
     marginTop: 10,
   },
   title: {
@@ -202,7 +221,7 @@ const styles = StyleSheet.create({
   categories: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-between',
     marginHorizontal: 5,
   },
   categoryButton: {
@@ -211,18 +230,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 10,
+    width: '48%',
+    alignItems: 'center',
   },
   categoryText: {
     color: 'white',
     fontWeight: '500',
     fontSize: 14,
+    textAlign: 'center',
   },
   section: {
     marginVertical: 10,
   },
   popularCardContainer: {
     marginVertical: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
   },
   popularCard: {
     flexDirection: 'row',
@@ -239,6 +261,7 @@ const styles = StyleSheet.create({
   },
   popularContent: {
     flex: 1,
+    marginRight: 10,
   },
   popularTitle: {
     fontWeight: 'bold',
@@ -254,12 +277,12 @@ const styles = StyleSheet.create({
   popularFooter: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   popularPrice: {
     fontWeight: 'bold',
     fontSize: 15,
     color: colors.primary,
-    marginRight: 10,
   },
   buyButton: {
     backgroundColor: colors.primary,
@@ -276,7 +299,6 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 15,
-    marginLeft: 10,
     backgroundColor: '#eee',
   },
   loadingText: {

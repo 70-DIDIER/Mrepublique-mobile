@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native'
-import React from 'react'
 import { router } from 'expo-router';
+import React from 'react';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MyCarousel from '../../components/carousel';
 import Header from '../../components/header-1';
 
-export default function menu() {
+export default function Menu() {
   const menuItems = [
     { id: '1', title: 'Petit déjeuner', image: require('../../assets/images/petiti_dejener.png') },
     { id: '2', title: 'cocktail', image: require('../../assets/images/cocktail.png') },
@@ -17,34 +17,44 @@ export default function menu() {
     { id: '9', title: 'Deser', image: require('../../assets/images/deser.png') },
     { id: '10', title: 'Apéritif', image: require('../../assets/images/apperitif.png') },
   ];
+
   return (
     <View style={styles.container}>
-      <Header  />
-     {/* pour le carousel */}
-      <View style={styles.carousel}>
-        <MyCarousel />
-      </View>
-      <View style={{ marginTop: 200 }}>
-       <ScrollView contentContainerStyle={styles.menuContainer}>
-        {menuItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.button} onPress={() => router.push('/show')} >
-            <Image source={item.image} style={styles.image} />
-            <Text style={styles.buttonText}>{item.title}</Text>
-          </TouchableOpacity>
-        ))}
+      <Header />
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Carousel */}
+        <View style={styles.carousel}>
+          <MyCarousel />
+        </View>
+        {/* Grille des menus */}
+        <View style={styles.menuContainer}>
+          {menuItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.button}
+              onPress={() => router.push('/show')}
+            >
+              <Image source={item.image} style={styles.image} />
+              <Text style={styles.buttonText}>{item.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
-      </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-   flex: 1,
+    flex: 1,
     backgroundColor: '#f9f9f9',
+  },
+  scrollContainer: {
+    paddingBottom: 20,
   },
   carousel: {
     marginTop: 20,
+    marginBottom: 0,
   },
   menuContainer: {
     flexDirection: 'row',
@@ -71,4 +81,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 5,
   },
-})
+});

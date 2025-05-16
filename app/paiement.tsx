@@ -1,11 +1,10 @@
 // app/paiement.tsx
+import axios, { isAxiosError } from 'axios';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors } from '../constants/colors';
 import { useCart } from '../context/CartContext';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import axios, { isAxiosError } from 'axios';
 
 export default function Paiement() {
   const { cart, removeFromCart } = useCart();
@@ -22,7 +21,11 @@ export default function Paiement() {
     }
 
     setLoading(true);
-    const apiUrl = Platform.OS === 'android' ? 'http://10.0.201.76:8000/api/paiements' : 'http://127.0.0.1:8000/api/paiements';
+    const API_IP = '192.168.99.178';
+    const apiUrl =
+      Platform.OS === 'android' || Platform.OS === 'ios'
+        ? `http://${API_IP}:8000/api/paiements`
+        : 'http://127.0.0.1:8000/api/paiements';
 
     const paymentData = {
       commande_id: parseInt(commandeId as string),
@@ -33,7 +36,8 @@ export default function Paiement() {
     try {
       const response = await axios.post(apiUrl, paymentData, {
         headers: {
-          Authorization: 'Bearer 22|MJgfDYeYXdyt24LxF4QAq7LhcAWBfH0MNrp5ss2t800cbbcf',
+          Authorization:
+            'Bearer 22|MJgfDYeYXdyt24LxF4QAq7LhcAWBfH0MNrp5ss2t800cbbcf',
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
@@ -45,7 +49,7 @@ export default function Paiement() {
         ]);
         cart.forEach(item => removeFromCart(item.id));
       } else {
-        throw new Error('Réponse inattendue de l\'API');
+        throw new Error("Réponse inattendue de l'API");
       }
     } catch (error) {
       if (isAxiosError(error)) {
@@ -64,14 +68,26 @@ export default function Paiement() {
       <Text style={styles.title}>Choisir le mode de paiement</Text>
       <View style={styles.section}>
         <Text style={styles.label}>Mode de paiement</Text>
-        <Picker
-          selectedValue={paymentMethod}
-          onValueChange={(itemValue: string, itemIndex: number) => setPaymentMethod(itemValue)}
-          style={styles.picker}
-        >
-          <Picker.Item label="Flooz" value="flooz" />
-          <Picker.Item label="Tmoney" value="tmoney" />
-        </Picker>
+        <View style={styles.radioContainer}>
+          <TouchableOpacity
+            style={styles.radioButton}
+            onPress={() => setPaymentMethod('flooz')}
+          >
+            <View style={[styles.radioOuter, paymentMethod === 'flooz' && styles.radioSelected]}>
+              {paymentMethod === 'flooz' && <View style={styles.radioInner} />}
+            </View>
+            <Text style={styles.radioLabel}>Flooz</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.radioButton}
+            onPress={() => setPaymentMethod('tmoney')}
+          >
+            <View style={[styles.radioOuter, paymentMethod === 'tmoney' && styles.radioSelected]}>
+              {paymentMethod === 'tmoney' && <View style={styles.radioInner} />}
+            </View>
+            <Text style={styles.radioLabel}>Tmoney</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <View style={styles.section}>
         <Text style={styles.label}>Numéro de téléphone</Text>
@@ -108,10 +124,15 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: colors.text },
   section: { marginBottom: 20 },
   label: { fontSize: 16, fontWeight: 'bold', color: colors.text, marginBottom: 5 },
-  picker: { height: 50, borderWidth: 1, borderColor: '#859163', borderRadius: 5 },
   input: { borderWidth: 1, borderColor: '#859163', borderRadius: 5, padding: 10, color: colors.text, backgroundColor: '#f5f5f5' },
   buttonContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
   confirmButton: { backgroundColor: '#72815A', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 5, flex: 1, alignItems: 'center', marginRight: 10 },
   cancelButton: { backgroundColor: '#859163', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 5, flex: 1, alignItems: 'center' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '500' },
+  radioContainer: { flexDirection: 'row', alignItems: 'center' },
+  radioButton: { flexDirection: 'row', alignItems: 'center', marginRight: 20 },
+  radioOuter: { width: 24, height: 24, borderWidth: 2, borderColor: colors.primary, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  radioInner: { width: 12, height: 12, backgroundColor: colors.primary, borderRadius: 6 },
+  radioLabel: { marginLeft: 8, fontSize: 16, color: colors.text },
+  radioSelected: { borderColor: colors.primary },
 });

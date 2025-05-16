@@ -110,8 +110,8 @@ export default function Show() {
                   <View style={styles.dishInfo}>
                     <Text style={styles.dishName}>
                       {item.nom || 'Nom inconnu'}{' '}
-                      <Text style={styles.priceText}>{item.prix || 'Prix inconnu'} F CFA</Text>
                     </Text>
+                      <Text style={styles.priceText}>{item.prix || 'Prix inconnu'} FCFA</Text>
                     <Text style={styles.dishDescription}>
                       {item.description || 'Variante non disponible'}
                     </Text>
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   dishImage: {
     width: 100,
-    height: 100,
+    height: 135,
     borderRadius: 10,
     marginRight: 10,
   },

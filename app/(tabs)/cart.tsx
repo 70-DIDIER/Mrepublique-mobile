@@ -48,12 +48,16 @@ export default function Cart() {
                     }
                   />
                   <View style={styles.cartInfo}>
-                    <Text style={styles.cartName}>AYIMOLOU</Text>
+                    <Text style={styles.cartName}>{item.nom}</Text>
                     <Text style={styles.cartDescription}>{'description' in item ? (item as any).description || 'Variante non disponible' : 'Variante non disponible'}</Text>
                     <Text style={styles.cartPrice}>{item.prix} F CFA</Text>
                     <View style={styles.quantityContainer}>
                       <TouchableOpacity
-                        onPress={() => updateQuantity(item.id, item.quantity - 1)}
+                        onPress={() => {
+                          if (item.quantity > 1) {
+                            updateQuantity(item.id, item.quantity - 1);
+                          }
+                        }}
                         style={styles.quantityButton}
                       >
                         <Text style={styles.quantityText}>-</Text>
