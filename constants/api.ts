@@ -1,1 +1,1 @@
-export const API_URL = 'http://192.168.99.178:8000/api'; // Remplace par l'URL réelle
+export const API_URL = 'http://10.0.201.176:8000/api'; // Remplace par l'URL réelle

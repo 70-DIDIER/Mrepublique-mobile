@@ -21,7 +21,7 @@ export default function Paiement() {
     }
 
     setLoading(true);
-    const API_IP = '192.168.99.178';
+    const API_IP = '10.0.201.176';
     const apiUrl =
       Platform.OS === 'android' || Platform.OS === 'ios'
         ? `http://${API_IP}:8000/api/paiements`
