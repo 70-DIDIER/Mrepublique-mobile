@@ -1,12 +1,11 @@
 // app/show.tsx
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, Image, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, Modal } from 'react-native';
-import { useRouter } from 'expo-router';
-import { API_URL } from '../constants/api';
+import { FlatList, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors } from '../constants/colors';
-import { getDishes } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { getDishes, getDishesByCategory } from '../services/api';
 
 export default function Show() {
   const [dishes, setDishes] = useState<any[]>([]);
@@ -17,15 +16,23 @@ export default function Show() {
   const [selectedDish, setSelectedDish] = useState<string | null>(null);
   const { addToCart } = useCart();
   const router = useRouter();
+  const { category } = useLocalSearchParams();
 
   useEffect(() => {
     const fetchDishes = async () => {
       try {
         setLoading(true);
-        console.log('Tentative de connexion à:', `${API_URL}/plats`);
-        const response = await getDishes();
-        console.log('Réponse brute de l\'API:', response);
+        let response;
+        
+        if (category) {
+          console.log('Récupération des plats pour la catégorie:', category);
+          response = await getDishesByCategory(category as string);
+        } else {
+          console.log('Récupération de tous les plats');
+          response = await getDishes();
+        }
 
+        console.log('Réponse brute de l\'API:', response);
         const data = response.data || response;
         console.log('Données traitées:', data);
         setDishes(Array.isArray(data) ? data : data.data || []);
@@ -45,7 +52,7 @@ export default function Show() {
     };
 
     fetchDishes();
-  }, []);
+  }, [category]);
 
   const getImageUrl = (imageUrl: string) => {
     if (!imageUrl) return 'https://via.placeholder.com/200';

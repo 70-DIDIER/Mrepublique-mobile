@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const API_URL = 'http://10.0.201.176:8000/api'; // URL pour l'émulateur Android
+const API_URL = 'http://192.168.137.1:8000/api'; // URL pour l'émulateur Android
 
 const api = axios.create({
   baseURL: API_URL,
@@ -28,6 +28,9 @@ api.interceptors.response.use(
 
 // Récupérer tous les plats 
 export const getDishes = () => api.get('/plats');
+
+// Récupérer les plats par catégorie
+export const getDishesByCategory = (category: string) => api.get(`/plats/categorie/${category}`);
 
 // Récupérer les catégories uniques à partir des plats
 export const getCategories = async () => {

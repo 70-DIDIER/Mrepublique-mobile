@@ -8,7 +8,7 @@ export default function Menu() {
   const menuItems = [
     { id: '1', title: 'Petit déjeuner', image: require('../../assets/images/petiti_dejener.png') },
     { id: '2', title: 'cocktail', image: require('../../assets/images/cocktail.png') },
-    { id: '3', title: 'Déjeuner', image: require('../../assets/images/dejener.png') },
+    { id: '3', title: 'Plats locaux', image: require('../../assets/images/dejener.png') },
     { id: '4', title: 'Soda', image: require('../../assets/images/soda.png') },
     { id: '5', title: 'Dinner', image: require('../../assets/images/dinner.png') },
     { id: '6', title: 'Bière', image: require('../../assets/images/biere.png') },
@@ -32,7 +32,10 @@ export default function Menu() {
             <TouchableOpacity
               key={item.id}
               style={styles.button}
-              onPress={() => router.push('/show')}
+              onPress={() => router.push({
+                pathname: '/show',
+                params: { category: item.title.toLowerCase() }
+              })}
             >
               <Image source={item.image} style={styles.image} />
               <Text style={styles.buttonText}>{item.title}</Text>
