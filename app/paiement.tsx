@@ -1,4 +1,3 @@
-// app/paiement.tsx
 import axios, { isAxiosError } from 'axios';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -9,10 +8,44 @@ import { useCart } from '../context/CartContext';
 export default function Paiement() {
   const { cart, removeFromCart } = useCart();
   const router = useRouter();
-  const { commandeId } = useLocalSearchParams();
+  // Récupération des paramètres passés (commandeId, latitude et longitude du client)
+  const { commandeId, latitude, longitude } = useLocalSearchParams();
   const [paymentMethod, setPaymentMethod] = useState('flooz');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Coordonnées du restaurant (fixes)
+  const lat_restaurant = 6.184575120133669;
+  const lon_restaurant = 1.2069011861319983;
+
+  // Conversion des paramètres en Numbers (avec valeurs par défaut si manquants)
+  const latCustomer = Number(latitude) || 6.17501;
+  const lonCustomer = Number(longitude) || 1.23041;
+
+  // Fonction pour calculer la distance entre deux points (en km) avec la formule de Haversine
+  const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const toRad = (x: number) => (x * Math.PI) / 180;
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Calcul du frais de livraison (le km vaut 100 F CFA)
+  const distanceKm = haversineDistance(lat_restaurant, lon_restaurant, latCustomer, lonCustomer);
+  const deliveryFee = Math.ceil(distanceKm * 200);
+
+  // Calcul du total des articles
+  const totalArticles = cart.reduce((total, item) => total + (Number(item.prix) * item.quantity), 0);
+  // Calcul du total général = total des articles + frais de livraison
+  const totalGeneral = totalArticles + deliveryFee;
 
   const handleConfirmPayment = async () => {
     if (!phoneNumber || phoneNumber.length < 8) {
@@ -21,7 +54,7 @@ export default function Paiement() {
     }
 
     setLoading(true);
-    const API_IP = '192.168.137.1';
+    const API_IP = '10.0.203.53';
     const apiUrl =
       Platform.OS === 'android' || Platform.OS === 'ios'
         ? `http://${API_IP}:8000/api/paiements`
@@ -37,7 +70,7 @@ export default function Paiement() {
       const response = await axios.post(apiUrl, paymentData, {
         headers: {
           Authorization:
-            'Bearer 22|MJgfDYeYXdyt24LxF4QAq7LhcAWBfH0MNrp5ss2t800cbbcf',
+            'Bearer 28|DUm4Tc1D87le1eA54wDjte4tRm8SD6BGNCX1WR9ade0c1d88',
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
@@ -100,6 +133,35 @@ export default function Paiement() {
           keyboardType="phone-pad"
         />
       </View>
+      <Text style={styles.title}>Résumé de la commande</Text>
+      <View style={styles.section}>
+        <View style={styles.orderSummaryContainer}>
+          {cart.length > 0 ? (
+            <>
+              {cart.map((item) => (
+                <View key={item.id} style={styles.orderSummaryItem}>
+                  <Text style={styles.itemName}>{item.nom}</Text>
+                  <Text style={styles.itemDetails}>
+                    {item.quantity} x {Number(item.prix).toFixed(2)} FCFA
+                  </Text>
+                </View>
+              ))}
+              {/* Frais de livraison */}
+              <View style={styles.orderSummaryItem}>
+                <Text style={styles.itemName}>Frais de livraison</Text>
+                <Text style={styles.itemDetails}>{deliveryFee} FCFA</Text>
+              </View>
+              {/* Total général */}
+              <View style={styles.orderSummaryItem}>
+                <Text style={[styles.itemName, { fontWeight: '700' }]}>Total Général</Text>
+                <Text style={[styles.itemDetails, { fontWeight: '700' }]}>{totalGeneral.toFixed(2)} FCFA</Text>
+              </View>
+            </>
+          ) : (
+            <Text>Votre panier est vide.</Text>
+          )}
+        </View>
+      </View>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.confirmButton}
@@ -121,15 +183,19 @@ export default function Paiement() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: colors.white, marginTop: 20 },
-  title: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: colors.text },
+  title: { fontSize: 22, fontWeight: '600', textAlign: 'center', marginBottom: 20, color: colors.primary },
   section: { marginBottom: 20 },
-  label: { fontSize: 16, fontWeight: 'bold', color: colors.text, marginBottom: 5 },
-  input: { borderWidth: 1, borderColor: '#859163', borderRadius: 5, padding: 10, color: colors.text, backgroundColor: '#f5f5f5' },
+  label: { fontSize: 16, fontWeight: '500', color: colors.text, marginBottom: 8 },
+  input: { borderWidth: 1, borderColor: colors.primary, borderRadius: 8, padding: 12, color: colors.text, backgroundColor: '#f5f5f5' },
+  orderSummaryContainer: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, backgroundColor: '#fafafa', marginBottom: 20 },
+  orderSummaryItem: { borderBottomWidth: 1, borderBottomColor: '#eee', paddingVertical: 8, flexDirection: 'row', justifyContent: 'space-between' },
+  itemName: { fontSize: 16, fontWeight: '500', color: colors.text },
+  itemDetails: { fontSize: 16, color: colors.text },
   buttonContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
-  confirmButton: { backgroundColor: '#72815A', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 5, flex: 1, alignItems: 'center', marginRight: 10 },
-  cancelButton: { backgroundColor: '#859163', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 5, flex: 1, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '500' },
-  radioContainer: { flexDirection: 'row', alignItems: 'center' },
+  confirmButton: { backgroundColor: '#72815A', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, flex: 1, alignItems: 'center', marginRight: 10 },
+  cancelButton: { backgroundColor: '#859163', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, flex: 1, alignItems: 'center' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  radioContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
   radioButton: { flexDirection: 'row', alignItems: 'center', marginRight: 20 },
   radioOuter: { width: 24, height: 24, borderWidth: 2, borderColor: colors.primary, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   radioInner: { width: 12, height: 12, backgroundColor: colors.primary, borderRadius: 6 },

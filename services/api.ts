@@ -1,14 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const API_URL = 'http://192.168.137.1:8000/api'; // URL pour l'émulateur Android
+const API_URL = 'http://10.0.2.2:8000/api'; // URL pour l'émulateur Android
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-});
+})
 
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem('token');
@@ -77,16 +77,16 @@ export const getRandomDish = async () => {
 };
 
 // Autres fonctions (inchangées)
-export const register = (data: { name: string; email: string; password: string }) =>
-  api.post('/register', data);
+// export const register = (data: { name: string; email: string; password: string }) =>
+//   api.post('/register', data);
 
-export const login = async (credentials: { email: string; password: string }) => {
-  const response = await api.post('/login', credentials);
-  if (response.data.token) {
-    await AsyncStorage.setItem('token', response.data.token);
-  }
-  return response;
-};
+// export const login = async (credentials: { email: string; password: string }) => {
+//   const response = await api.post('/login', credentials);
+//   if (response.data.token) {
+//     await AsyncStorage.setItem('token', response.data.token);
+//   }
+//   return response;
+// };
 
 export const addToCart = (dishId: string, quantity: number) =>
   api.post('/cart/add', { dish_id: dishId, quantity });
@@ -102,6 +102,62 @@ export const getUserProfile = () => api.get('/user');
 
 export const logout = async () => {
   await AsyncStorage.removeItem('token');
+};
+
+// pour les enpdpoints de connexion
+interface ApiResponse {
+    // Définissez ici les propriétés attendues de la réponse
+    [key: string]: any;
+}
+
+export const register = async (
+  name: string,
+  telephone: string,
+  password: string,
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.post('/register', {
+      name,
+      telephone,
+      password,
+    });
+
+    return response; // Renvoyer directement la réponse après l'intercepteur
+  } catch (error: any) {
+    throw error.response?.data ?? error;
+  }
+};
+
+export const login = async (
+  identifiant: string,
+  password: string
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.post('/login', {
+      identifiant,
+      password,
+    });
+
+    return response; // Retourner directement la réponse comme pour register et verifyCode
+  } catch (error: any) {
+    throw error.response?.data ?? error;
+  }
+};
+
+export const verifyCode = async (
+  telephone: string,
+  code: string
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.post('/verify-code', {
+      telephone,
+      code,
+    });
+
+    return response; // Renvoyer directement la réponse après l'intercepteur
+  } catch (error: any) {
+    throw error.response?.data ?? error;
+  }
 };
 
 export default api;

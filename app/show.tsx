@@ -1,4 +1,3 @@
-// app/show.tsx
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -75,7 +74,7 @@ export default function Show() {
 
   const goToCart = () => {
     setModalVisible(false);
-    router.push('/(tabs)/cart'); // Redirige vers l'onglet Panier
+    router.push('/(tabs)/cart'); 
   };
 
   const filteredDishes = dishes.filter(

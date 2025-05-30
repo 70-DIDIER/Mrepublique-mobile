@@ -6,6 +6,13 @@
     "version": "1.0.0",
     "entryPoint": "expo-router/entry",
     "platforms": ["ios", "android", "web"],
-    "assetBundlePatterns": ["**/*"]
+    "assetBundlePatterns": ["**/*"],
+
+    "jsEngine": "hermes", 
+    "web": {
+      "build": {
+        "babel": true
+      }
+    }
   }
 }

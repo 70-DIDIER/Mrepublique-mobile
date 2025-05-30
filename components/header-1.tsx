@@ -6,11 +6,10 @@ const Header = () => {
   return (
     <View style={styles.headerContainer}>
       <Image
-        // Vérifie que le chemin est correct (par ex. si tes assets se trouvent dans un dossier 'assets' à la racine du projet, adapte le chemin)
         source={require('../assets/images/logo.png')}
         style={styles.logo}
       />
-      <Text style={styles.title}>MRepublique</Text>
+      <Text style={styles.title}>M&#39;Republique</Text>
       <Image
         // Vérifie que le chemin est correct
         source={require('../assets/images/profile.png')}
@@ -22,15 +21,14 @@ const Header = () => {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: colors.primary, // Couleur de fond (vert kaki ou olive selon ton design)
+    backgroundColor: colors.primary, 
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 10, // Padding pour iOS (status bar)
     paddingBottom: 20,
-    // borderTopLeftRadius: 20,
-    // borderTopRightRadius: 20,
+    
   },
   logo: {
     width: 40,

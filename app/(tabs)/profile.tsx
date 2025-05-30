@@ -3,11 +3,13 @@ import { router } from 'expo-router';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../../components/header-1';
 import { colors } from '../../constants/colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Profile() {
   return (
+    <SafeAreaView style={styles.safeArea}>
     <View style={styles.container}>
-      <Header />
+      <Header  />
       <View style={styles.content}>
         <View style={styles.header}>
           <Image source={require('../../assets/images/profile.png')} style={styles.profileImage} />
@@ -76,6 +78,7 @@ export default function Profile() {
         </View>
       </View>
     </View>
+  </SafeAreaView>  
   );
 }
 
@@ -141,5 +144,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 15,
     color: colors.text,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#72815A',
   },
 });
