@@ -1,48 +1,37 @@
-// import { Stack } from 'expo-router';
-// import { CartProvider } from '../context/CartContext';
-// export default function RootLayout() {
-//   return (
-//     <CartProvider>
-//       <Stack screenOptions={{ headerShown: false }}>
-//         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-//         <Stack.Screen name="show" options={{ headerShown: false }} />
-//         <Stack.Screen name="commande" options={{ headerShown: false }} />
-//         <Stack.Screen name="paiement" options={{ headerShown: false }} />
-//         <Stack.Screen name="+not-found" />
-//       </Stack>
-//     </CartProvider>
-//   );
-// }
-
-
-
 import { AuthContext, AuthProvider } from "@/context/AuthContext";
-import { Stack } from "expo-router";
-import React, { useContext } from "react";
+import { Slot, useRouter, useSegments } from "expo-router";
+import React, { useCallback, useContext, useEffect } from "react";
 import { CartProvider } from '../context/CartContext';
-function AuthenticatedStack() {
+
+function RootLayoutNav() {
   const { token, loading } = useContext(AuthContext);
+  const segments = useSegments();
+  const router = useRouter();
 
-  if (loading) {
-    // Vous pouvez renvoyer ici un écran de chargement
-    return null;
-  }
+  const handleNavigation = useCallback(() => {
+    if (loading) return; // Ne pas naviguer pendant le chargement
 
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!token && !inAuthGroup) {
+      // Rediriger vers l'écran de connexion si non authentifié
+      router.replace("/(auth)/login");
+    } else if (token && inAuthGroup) {
+      // Rediriger vers l'écran principal si authentifié
+      router.replace("/(tabs)");
+    }
+  }, [token, segments, router, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      handleNavigation();
+    }
+  }, [handleNavigation, loading]);
+
+  // Toujours rendre le Slot, même pendant le chargement
   return (
     <CartProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        {token ? (
-          <>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="show" options={{ headerShown: false }} />
-            <Stack.Screen name="commande" options={{ headerShown: false }} />
-            <Stack.Screen name="paiement" options={{ headerShown: false }} />
-          </>
-        ) : (
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        )}
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <Slot />
     </CartProvider>
   );
 }
@@ -50,7 +39,7 @@ function AuthenticatedStack() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <AuthenticatedStack />
+      <RootLayoutNav />
     </AuthProvider>
   );
 }

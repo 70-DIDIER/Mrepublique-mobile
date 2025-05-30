@@ -98,7 +98,14 @@ export const createOrder = (data: { delivery_method: string; address?: string })
 
 export const getOrders = () => api.get('/commandes');
 
-export const getUserProfile = () => api.get('/user');
+export const getUserProfile = async (): Promise<ApiResponse> => {
+  try {
+    const response = await api.get('/me');
+    return response;
+  } catch (error: any) {
+    throw error.response?.data ?? error;
+  }
+};
 
 export const logout = async () => {
   await AsyncStorage.removeItem('token');
