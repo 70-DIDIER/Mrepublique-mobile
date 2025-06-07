@@ -7,8 +7,11 @@
     "entryPoint": "expo-router/entry",
     "platforms": ["ios", "android", "web"],
     "assetBundlePatterns": ["**/*"],
-
-    "jsEngine": "hermes", 
+    "jsEngine": "hermes",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "backgroundColor": "#ffffff"
+    },
     "web": {
       "build": {
         "babel": true
