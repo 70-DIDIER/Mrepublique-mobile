@@ -6,6 +6,11 @@
     "version": "1.0.0",
     "entryPoint": "expo-router/entry",
     "platforms": ["ios", "android", "web"],
-    "assetBundlePatterns": ["**/*"]
+    "assetBundlePatterns": ["**/*"],
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    }
   }
 }
