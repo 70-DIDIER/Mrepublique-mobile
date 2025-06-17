@@ -1,24 +1,40 @@
+import { AuthContext } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useContext } from 'react';
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header-1';
 import { colors } from '../../constants/colors';
 
 export default function Profile() {
+  const { user, logout } = useContext(AuthContext);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.replace('/(auth)/login');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      Alert.alert('Erreur', 'Une erreur est survenue lors de la déconnexion');
+    }
+  };
+
   return (
+    <SafeAreaView style={styles.safeArea}>
     <View style={styles.container}>
-      <Header />
+      <Header  />
       <View style={styles.content}>
         <View style={styles.header}>
           <Image source={require('../../assets/images/profile.png')} style={styles.profileImage} />
           <View>
-            <Text style={styles.name}>Angelo</Text>
-            <Text style={styles.email}>angelo@gmail.com</Text>
+            <Text style={styles.name}>{user?.name || 'Utilisateur'}</Text>
+            <Text style={styles.email}>{user?.telephone || 'Non connecté'}</Text>
           </View>
         </View>
 
         <View style={styles.optionsContainer}>
-          <TouchableOpacity style={styles.option} onPress={() => router.push('/login')}>
+          <TouchableOpacity style={styles.option} onPress={handleLogout}>
             <View style={styles.optionContent}>
               <Ionicons name="log-out-outline" size={24} color={colors.primary} />
               <Text style={styles.optionText}>Déconnexion</Text>
@@ -76,6 +92,7 @@ export default function Profile() {
         </View>
       </View>
     </View>
+  </SafeAreaView>  
   );
 }
 
@@ -141,5 +158,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 15,
     color: colors.text,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#72815A',
   },
 });

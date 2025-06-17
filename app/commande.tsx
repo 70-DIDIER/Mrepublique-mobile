@@ -1,4 +1,3 @@
-// app/commande.tsx
 import axios, { isAxiosError } from 'axios';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
@@ -148,17 +147,17 @@ export default function Commande() {
       </View>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={() => router.push('/(tabs)/cart')}
+        >
+          <Text style={styles.buttonText}>Annuler</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={styles.confirmButton}
           onPress={handleConfirmCommande}
           disabled={loading}
         >
           <Text style={styles.buttonText}>{loading ? 'En cours...' : 'Confirmer la commande'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => router.push('/(tabs)/cart')}
-        >
-          <Text style={styles.buttonText}>Annuler</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
   infoText: { fontSize: 14, color: colors.secondary },
   errorText: { fontSize: 14, color: 'red' },
   buttonContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
-  confirmButton: { backgroundColor: '#72815A', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 5, flex: 1, alignItems: 'center', marginRight: 10 },
-  cancelButton: { backgroundColor: '#859163', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 5, flex: 1, alignItems: 'center' },
+  confirmButton: { backgroundColor: '#72815A', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 5, flex: 1, alignItems: 'center'  },
+  cancelButton: { backgroundColor: '#859163', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 5, flex: 1, alignItems: 'center', marginRight: 10 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '500' },
 });

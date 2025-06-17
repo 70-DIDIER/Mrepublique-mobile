@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView,  StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MyCarousel from '../../components/carousel';
 import Header from '../../components/header-1';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 export default function Menu() {
   const menuItems = [
     { id: '1', title: 'Petit déjeuner', image: require('../../assets/images/petiti_dejener.png') },
@@ -19,6 +19,8 @@ export default function Menu() {
   ];
 
   return (
+  <SafeAreaView style={styles.safeArea}>
+    <StatusBar barStyle="light-content" translucent={false} backgroundColor="#72815A" />
     <View style={styles.container}>
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -44,6 +46,7 @@ export default function Menu() {
         </View>
       </ScrollView>
     </View>
+  </SafeAreaView>  
   );
 }
 
@@ -84,4 +87,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 5,
   },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#72815A',
+  }
 });

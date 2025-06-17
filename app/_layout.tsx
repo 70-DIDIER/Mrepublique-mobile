@@ -1,15 +1,45 @@
-import { Stack } from 'expo-router';
+import { AuthContext, AuthProvider } from "@/context/AuthContext";
+import { Slot, useRouter, useSegments } from "expo-router";
+import React, { useCallback, useContext, useEffect } from "react";
 import { CartProvider } from '../context/CartContext';
-export default function RootLayout() {
+
+function RootLayoutNav() {
+  const { token, loading } = useContext(AuthContext);
+  const segments = useSegments();
+  const router = useRouter();
+
+  const handleNavigation = useCallback(() => {
+    if (loading) return; // Ne pas naviguer pendant le chargement
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!token && !inAuthGroup) {
+      // Rediriger vers l'écran de connexion si non authentifié
+      router.replace("/(auth)/login");
+    } else if (token && inAuthGroup) {
+      // Rediriger vers l'écran principal si authentifié
+      router.replace("/(tabs)");
+    }
+  }, [token, segments, router, loading]);
+
+  useEffect(() => {
+    if (!loading) {
+      handleNavigation();
+    }
+  }, [handleNavigation, loading]);
+
+  // Toujours rendre le Slot, même pendant le chargement
   return (
     <CartProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="show" options={{ headerShown: false }} />
-        <Stack.Screen name="commande" options={{ headerShown: false }} />
-        <Stack.Screen name="paiement" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <Slot />
     </CartProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }
