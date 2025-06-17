@@ -39,7 +39,7 @@ export default function Commande() {
     }
 
     setLoading(true);
-    const API_IP = '192.168.1.124';
+    const API_IP = '10.0.203.184';
     const apiUrl = Platform.OS === 'android' || Platform.OS === 'ios'
       ? `http://${API_IP}:8000/api/commandes`
       : 'http://127.0.0.1:8000/api/commandes';
