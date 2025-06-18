@@ -54,7 +54,7 @@ export default function Paiement() {
     }
 
     setLoading(true);
-    const API_IP = '10.0.203.184';
+    const API_IP = '10.0.2.2';
     const apiUrl =
       Platform.OS === 'android' || Platform.OS === 'ios'
         ? `http://${API_IP}:8000/api/paiements`
@@ -70,7 +70,7 @@ export default function Paiement() {
       const response = await axios.post(apiUrl, paymentData, {
         headers: {
           Authorization:
-          'Bearer 38|QFTGDEeaWOQSee3dU30XKNVtIvNHfwtRGvwCknq4c9b8baf0',
+          'Bearer 40|GEdaGmnvTqIvN7twmUHzzx5DVplvb8Q0vWBAp4xcd765cc98',
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },

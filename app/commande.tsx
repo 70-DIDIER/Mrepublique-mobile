@@ -39,7 +39,7 @@ export default function Commande() {
     }
 
     setLoading(true);
-    const API_IP = '10.0.203.184';
+    const API_IP = '10.0.2.2';
     const apiUrl = Platform.OS === 'android' || Platform.OS === 'ios'
       ? `http://${API_IP}:8000/api/commandes`
       : 'http://127.0.0.1:8000/api/commandes';
@@ -59,7 +59,7 @@ export default function Commande() {
     try {
       const response = await axios.post(apiUrl, commandData, {
         headers: {
-          Authorization: 'Bearer 38|QFTGDEeaWOQSee3dU30XKNVtIvNHfwtRGvwCknq4c9b8baf0', // Remplace <token> par ton vrai token
+          Authorization: 'Bearer 40|GEdaGmnvTqIvN7twmUHzzx5DVplvb8Q0vWBAp4xcd765cc98', // Remplace <token> par ton vrai token
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
