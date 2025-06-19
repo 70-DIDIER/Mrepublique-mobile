@@ -5,6 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors } from '../constants/colors';
 import { useCart } from '../context/CartContext';
+import { getToken } from '../services/api';
+
 
 export default function Commande() {
   const { cart } = useCart();
@@ -39,12 +41,12 @@ export default function Commande() {
     }
 
     setLoading(true);
-    const API_IP = '10.0.2.2';
+    const API_IP = '192.168.21.81';
     const apiUrl = Platform.OS === 'android' || Platform.OS === 'ios'
       ? `http://${API_IP}:8000/api/commandes`
       : 'http://127.0.0.1:8000/api/commandes';
-
-    const commandData = {
+    
+      const commandData = {
       articles: cart.map(item => ({
         type: 'plat',
         id: parseInt(item.id),
@@ -55,11 +57,11 @@ export default function Commande() {
       adresse_livraison: adresseLivraison,
       commentaire: commentaire,
     };
-
+    const token = await getToken();
     try {
       const response = await axios.post(apiUrl, commandData, {
         headers: {
-          Authorization: 'Bearer 40|GEdaGmnvTqIvN7twmUHzzx5DVplvb8Q0vWBAp4xcd765cc98', // Remplace <token> par ton vrai token
+          Authorization: `Bearer ${token}`, // Remplace <token> par ton vrai token
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },

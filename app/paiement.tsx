@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors } from '../constants/colors';
 import { useCart } from '../context/CartContext';
+import { getToken } from '../services/api';
 
 export default function Paiement() {
   const { cart, removeFromCart } = useCart();
@@ -54,12 +55,13 @@ export default function Paiement() {
     }
 
     setLoading(true);
-    const API_IP = '10.0.2.2';
+    const API_IP = '192.168.21.81';
     const apiUrl =
       Platform.OS === 'android' || Platform.OS === 'ios'
         ? `http://${API_IP}:8000/api/paiements`
         : 'http://127.0.0.1:8000/api/paiements';
 
+    const token = await getToken();
     const paymentData = {
       commande_id: parseInt(commandeId as string),
       methode: paymentMethod,
@@ -69,8 +71,7 @@ export default function Paiement() {
     try {
       const response = await axios.post(apiUrl, paymentData, {
         headers: {
-          Authorization:
-          'Bearer 40|GEdaGmnvTqIvN7twmUHzzx5DVplvb8Q0vWBAp4xcd765cc98',
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },

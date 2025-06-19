@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const API_URL = 'http://10.0.2.2:8000/api'; 
+const API_URL = 'http://192.168.21.81:8000/api'; 
 
 const api = axios.create({
   baseURL: API_URL,
@@ -93,8 +93,8 @@ export const addToCart = (dishId: string, quantity: number) =>
 
 export const getCart = () => api.get('/cart');
 
-export const createOrder = (data: { delivery_method: string; address?: string }) =>
-  api.post('/order', data);
+// export const createOrder = (data: { delivery_method: string; address?: string }) =>
+//   api.post('/order', data);
 
 export const getOrders = () => api.get('/commandes');
 
@@ -165,6 +165,10 @@ export const verifyCode = async (
   } catch (error: any) {
     throw error.response?.data ?? error;
   }
+};
+
+export const getToken = async () => {
+  return await AsyncStorage.getItem('token');
 };
 
 export default api;
