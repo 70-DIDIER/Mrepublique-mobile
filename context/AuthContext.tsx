@@ -33,7 +33,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren<object>> = ({ childr
     try {
       const userData = await getUserProfile();
       console.log('Données utilisateur chargées:', userData);
-      setUser(userData);
+      setUser({
+        id: userData.id,
+        name: userData.name,
+        telephone: userData.telephone,
+      });
     } catch (error) {
       console.error('Erreur lors du chargement des données utilisateur', error);
       setUser(null);
@@ -69,7 +73,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<object>> = ({ childr
     };
 
     loadToken();
-  }, [token]);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ token, setToken, loading, user, logout }}>

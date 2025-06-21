@@ -1,7 +1,7 @@
 import axios, { isAxiosError } from 'axios';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors } from '../constants/colors';
 import { useCart } from '../context/CartContext';
 import { getToken } from '../services/api';
@@ -9,7 +9,6 @@ import { getToken } from '../services/api';
 export default function Paiement() {
   const { cart, removeFromCart } = useCart();
   const router = useRouter();
-  // Récupération des paramètres passés (commandeId, latitude et longitude du client)
   const { commandeId, latitude, longitude } = useLocalSearchParams();
   const [paymentMethod, setPaymentMethod] = useState('flooz');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -39,7 +38,7 @@ export default function Paiement() {
     return R * c;
   };
 
-  // Calcul du frais de livraison (le km vaut 100 F CFA)
+  // Calcul du frais de livraison (le km vaut 200 F CFA)
   const distanceKm = haversineDistance(lat_restaurant, lon_restaurant, latCustomer, lonCustomer);
   const deliveryFee = Math.ceil(distanceKm * 200);
 
@@ -55,10 +54,9 @@ export default function Paiement() {
     }
 
     setLoading(true);
-    const API_IP = '192.168.21.81';
     const apiUrl =
       Platform.OS === 'android' || Platform.OS === 'ios'
-        ? `http://${API_IP}:8000/api/paiements`
+        ? `https://apirestaurant.mrepublique.com/api/paiements`
         : 'http://127.0.0.1:8000/api/paiements';
 
     const token = await getToken();
@@ -98,91 +96,98 @@ export default function Paiement() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Choisir le mode de paiement</Text>
-      <View style={styles.section}>
-        <Text style={styles.label}>Mode de paiement</Text>
-        <View style={styles.radioContainer}>
-          <TouchableOpacity
-            style={styles.radioButton}
-            onPress={() => setPaymentMethod('flooz')}
-          >
-            <View style={[styles.radioOuter, paymentMethod === 'flooz' && styles.radioSelected]}>
-              {paymentMethod === 'flooz' && <View style={styles.radioInner} />}
-            </View>
-            <Text style={styles.radioLabel}>Flooz</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.radioButton}
-            onPress={() => setPaymentMethod('tmoney')}
-          >
-            <View style={[styles.radioOuter, paymentMethod === 'tmoney' && styles.radioSelected]}>
-              {paymentMethod === 'tmoney' && <View style={styles.radioInner} />}
-            </View>
-            <Text style={styles.radioLabel}>Tmoney</Text>
-          </TouchableOpacity>
+    <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Choisir le mode de paiement</Text>
+        <View style={styles.section}>
+          <Text style={styles.label}>Mode de paiement</Text>
+          <View style={styles.radioContainer}>
+            <TouchableOpacity
+              style={styles.radioButton}
+              onPress={() => setPaymentMethod('flooz')}
+            >
+              <View style={[styles.radioOuter, paymentMethod === 'flooz' && styles.radioSelected]}>
+                {paymentMethod === 'flooz' && <View style={styles.radioInner} />}
+              </View>
+              <Text style={styles.radioLabel}>Flooz</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.radioButton}
+              onPress={() => setPaymentMethod('tmoney')}
+            >
+              <View style={[styles.radioOuter, paymentMethod === 'tmoney' && styles.radioSelected]}>
+                {paymentMethod === 'tmoney' && <View style={styles.radioInner} />}
+              </View>
+              <Text style={styles.radioLabel}>Tmoney</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.label}>Numéro de téléphone</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Entrez votre numéro (ex: 90123456)"
-          placeholderTextColor="#888"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          keyboardType="phone-pad"
-        />
-      </View>
-      <Text style={styles.title}>Résumé de la commande</Text>
-      <View style={styles.section}>
-        <View style={styles.orderSummaryContainer}>
-          {cart.length > 0 ? (
-            <>
-              {cart.map((item) => (
-                <View key={item.id} style={styles.orderSummaryItem}>
-                  <Text style={styles.itemName}>{item.nom}</Text>
-                  <Text style={styles.itemDetails}>
-                    {item.quantity} x {Number(item.prix).toFixed(2)} FCFA
-                  </Text>
+        <View style={styles.section}>
+          <Text style={styles.label}>Numéro de téléphone</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Entrez votre numéro (ex: 90123456)"
+            placeholderTextColor="#888"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+          />
+        </View>
+        <Text style={styles.title}>Résumé de la commande</Text>
+        <View style={styles.section}>
+          <View style={styles.orderSummaryContainer}>
+            {cart.length > 0 ? (
+              <>
+                {cart.map((item) => (
+                  <View key={item.id} style={styles.orderSummaryItem}>
+                    <Text style={styles.itemName}>{item.nom}</Text>
+                    <Text style={styles.itemDetails}>
+                      {item.quantity} x {Number(item.prix).toFixed(2)} FCFA
+                    </Text>
+                  </View>
+                ))}
+                {/* Frais de livraison */}
+                <View style={styles.orderSummaryItem}>
+                  <Text style={styles.itemName}>Frais de livraison</Text>
+                  <Text style={styles.itemDetails}>{deliveryFee} FCFA</Text>
                 </View>
-              ))}
-              {/* Frais de livraison */}
-              <View style={styles.orderSummaryItem}>
-                <Text style={styles.itemName}>Frais de livraison</Text>
-                <Text style={styles.itemDetails}>{deliveryFee} FCFA</Text>
-              </View>
-              {/* Total général */}
-              <View style={styles.orderSummaryItem}>
-                <Text style={[styles.itemName, { fontWeight: '700' }]}>Total Général</Text>
-                <Text style={[styles.itemDetails, { fontWeight: '700' }]}>{totalGeneral.toFixed(2)} FCFA</Text>
-              </View>
-            </>
-          ) : (
-            <Text>Votre panier est vide.</Text>
-          )}
+                {/* Total général */}
+                <View style={styles.orderSummaryItem}>
+                  <Text style={[styles.itemName, { fontWeight: '700' }]}>Total Général</Text>
+                  <Text style={[styles.itemDetails, { fontWeight: '700' }]}>{totalGeneral.toFixed(2)} FCFA</Text>
+                </View>
+              </>
+            ) : (
+              <Text>Votre panier est vide.</Text>
+            )}
+          </View>
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={handleConfirmPayment}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>{loading ? 'En cours...' : 'Confirmer le paiement'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => router.push('/commande')}
+          >
+            <Text style={styles.buttonText}>Annuler</Text>
+          </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleConfirmPayment}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>{loading ? 'En cours...' : 'Confirmer le paiement'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => router.push('/commande')}
-        >
-          <Text style={styles.buttonText}>Annuler</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+    backgroundColor: colors.white,
+    paddingVertical: 20,
+  },
   container: { flex: 1, padding: 20, backgroundColor: colors.white, marginTop: 20 },
   title: { fontSize: 22, fontWeight: '600', textAlign: 'center', marginBottom: 20, color: colors.primary },
   section: { marginBottom: 20 },

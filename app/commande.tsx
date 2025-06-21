@@ -2,7 +2,7 @@ import axios, { isAxiosError } from 'axios';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { colors } from '../constants/colors';
 import { useCart } from '../context/CartContext';
 import { getToken } from '../services/api';
@@ -41,9 +41,8 @@ export default function Commande() {
     }
 
     setLoading(true);
-    const API_IP = '192.168.21.81';
     const apiUrl = Platform.OS === 'android' || Platform.OS === 'ios'
-      ? `http://${API_IP}:8000/api/commandes`
+      ? `https://apirestaurant.mrepublique.com/api/commandes`
       : 'http://127.0.0.1:8000/api/commandes';
     
       const commandData = {
@@ -110,63 +109,71 @@ export default function Commande() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Finaliser votre commande</Text>
-      <View style={styles.section}>
-        <Text style={styles.label}>Localisation</Text>
-        {locationPermission ? (
-          location ? (
-            <Text style={styles.infoText}>
-              Latitude: {location.latitude.toFixed(5)}, Longitude: {location.longitude.toFixed(5)}
-            </Text>
+    <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Finaliser votre commande</Text>
+        <View style={styles.section}>
+          <Text style={styles.label}>Localisation</Text>
+          {locationPermission ? (
+            location ? (
+              <Text style={styles.infoText}>
+                Latitude: {location.latitude.toFixed(5)}, Longitude: {location.longitude.toFixed(5)}
+              </Text>
+            ) : (
+              <Text style={styles.infoText}>Récupération de la localisation...</Text>
+            )
           ) : (
-            <Text style={styles.infoText}>Récupération de la localisation...</Text>
-          )
-        ) : (
-          <Text style={styles.errorText}>Localisation non autorisée</Text>
-        )}
+            <Text style={styles.errorText}>Localisation non autorisée</Text>
+          )}
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.label}>Adresse de livraison</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Entrez votre adresse de livraison"
+            placeholderTextColor="#888"
+            value={adresseLivraison}
+            onChangeText={setAdresseLivraison}
+          />
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.label}>Commentaire ou personnalisation</Text>
+          <TextInput
+            style={[styles.input, styles.commentInput]}
+            placeholder="Ex: Moins de sel, plus de piment..."
+            placeholderTextColor="#888"
+            value={commentaire}
+            onChangeText={setCommentaire}
+            multiline
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => router.push('/(tabs)/cart')}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>Annuler</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={handleConfirmCommande}
+            disabled={loading || !adresseLivraison}
+          >
+            <Text style={styles.buttonText}>{loading ? 'En cours...' : 'Confirmer la commande'}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.section}>
-        <Text style={styles.label}>Adresse de livraison</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Entrez votre adresse de livraison"
-          placeholderTextColor="#888"
-          value={adresseLivraison}
-          onChangeText={setAdresseLivraison}
-        />
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.label}>Commentaire ou personnalisation</Text>
-        <TextInput
-          style={[styles.input, styles.commentInput]}
-          placeholder="Ex: Moins de sel, plus de piment..."
-          placeholderTextColor="#888"
-          value={commentaire}
-          onChangeText={setCommentaire}
-          multiline
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => router.push('/(tabs)/cart')}
-        >
-          <Text style={styles.buttonText}>Annuler</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleConfirmCommande}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>{loading ? 'En cours...' : 'Confirmer la commande'}</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+    backgroundColor: colors.white,
+    paddingVertical: 20,
+  },
   container: { flex: 1, padding: 20, backgroundColor: colors.white, marginTop: 20 },
   title: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: colors.text },
   section: { marginBottom: 20 },
