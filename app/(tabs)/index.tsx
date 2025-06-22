@@ -75,7 +75,7 @@ const Index = () => {
 //   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
       <StatusBar barStyle="light-content" translucent={false} backgroundColor="#72815A" />
       <KeyboardAvoidingView
         style={styles.container}
@@ -90,7 +90,7 @@ const Index = () => {
               <MyCarousel />
             </View>
             {/* Barre de recherche */}
-            <View style={styles.searchContainer}>
+            {/* <View style={styles.searchContainer}>
               <TextInput
                 placeholder="Que cherchez-vous ?"
                 placeholderTextColor="#333"
@@ -99,7 +99,7 @@ const Index = () => {
               <TouchableOpacity style={styles.searchButton}>
                 <Ionicons name="search" size={20} color="white" />
               </TouchableOpacity>
-            </View>
+            </View> */}
             {/* Catégories */}
             <View style={styles.categoriesContainer}>
               <Text style={styles.title}>Catégories</Text>
@@ -164,7 +164,7 @@ export default Index;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#72815A',
+    // backgroundColor: '#ffffff',
   },
   container: {
     flex: 1,

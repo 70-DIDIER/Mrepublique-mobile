@@ -33,9 +33,12 @@ export default function TabLayout() {
         },
         headerTintColor: '#fff',
         tabBarActiveTintColor: colors.secondary,
-        tabBarInactiveTintColor: '#ffffff',
-        tabBarStyle: { backgroundColor: '#72815A',
-          display: keyboardVisible ? 'none' : 'flex',
+        tabBarInactiveTintColor: '#72815A',
+        tabBarStyle: { backgroundColor: '#ffffff',
+          // display: keyboardVisible ? 'none' : 'flex',
+          borderTopWidth: 0,            // Supprime la bordure supérieure verte
+          elevation: 0,                 // Supprime l'ombre sur Android
+          shadowOpacity: 0, 
         },
         
       }}

@@ -21,7 +21,7 @@ export default function Profile() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
     <View style={styles.container}>
       <Header  />
       <View style={styles.content}>
@@ -161,6 +161,6 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    backgroundColor: '#72815A',
+    // backgroundColor: '#72815A',
   },
 });

@@ -19,7 +19,7 @@ export default function Menu() {
   ];
 
   return (
-  <SafeAreaView style={styles.safeArea}>
+  <SafeAreaView edges={['top']} style={styles.safeArea}>
     <StatusBar barStyle="light-content" translucent={false} backgroundColor="#72815A" />
     <View style={styles.container}>
       <Header />
@@ -89,6 +89,6 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    backgroundColor: '#72815A',
+    // backgroundColor: '#72815A',
   }
 });
