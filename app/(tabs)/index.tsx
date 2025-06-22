@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+// import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,7 +10,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
+  // TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';

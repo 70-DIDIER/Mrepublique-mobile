@@ -3,7 +3,7 @@ import { login } from '@/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useContext, useState } from 'react';
-import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -40,43 +40,51 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Connexion</Text>
-      <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
-      <Text style={styles.subtitle}>Veuillez entrer votre numéro ou e-mail pour vous connecter</Text>
-      <TextInput
-        placeholder="Téléphone"
-        style={styles.input}
-        value={identifiant}
-        onChangeText={setIdentifiant}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <View style={styles.passwordContainer}>
+    <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <View style={styles.container}>
+        <Text style={styles.title}>Connexion</Text>
+        <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
+        <Text style={styles.subtitle}>Veuillez entrer votre numéro ou e-mail pour vous connecter</Text>
         <TextInput
-          placeholder="Mot de passe"
+          placeholder="Téléphone"
           style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!showPassword}
+          value={identifiant}
+          onChangeText={setIdentifiant}
+          autoCapitalize="none"
+          keyboardType="email-address"
         />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-          <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            placeholder="Mot de passe"
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+            <Text>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.forgotPassword}>Mot de passe oublié ?</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Connexion...' : 'Connexion'}</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.replace('../register')}>
+          <Text style={styles.buttonText}>Creer compte</Text>
+        </TouchableOpacity>
+        <Text style={styles.welcomeText}>Bienvenu à la maison de la république{'\n'}votre restaurant idéal</Text>
       </View>
-      <Text style={styles.forgotPassword}>Mot de passe oublié ?</Text>
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Connexion...' : 'Connexion'}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => router.replace('../register')}>
-        <Text style={styles.buttonText}>Creer compte</Text>
-      </TouchableOpacity>
-      <Text style={styles.welcomeText}>Bienvenu à la maison de la république{'\n'}votre restaurant idéal</Text>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 24,
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

@@ -1,10 +1,9 @@
 import { register as registerApi } from '@/services/api';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Button, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Button, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const RegisterScreen = () => {
-
   const router = useRouter();
   const [name, setName] = useState('');
   const [telephone, setTelephone] = useState('');
@@ -29,7 +28,7 @@ const RegisterScreen = () => {
       console.log('Inscription réussie:', response);
 
       Alert.alert('Succès', 'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.');
-      router.replace({ pathname: '../verificationScreen', params: { telephone: telephone } }); // Redirige vers l'écran de vérification en passant le numéro de téléphone
+      router.replace({ pathname: '../verificationScreen', params: { telephone: telephone } });
     } catch (error: any) {
       console.error('Erreur lors de l\'inscription', error);
       const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue. Veuillez réessayer.';
@@ -39,52 +38,58 @@ const RegisterScreen = () => {
     }
   };
 
-
   return (
-    <View style={styles.container}>
-      <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
-      <Text style={styles.title}>Veuillez remplir les informations pour vous connecter</Text>
-      <TextInput 
-      style={styles.input} 
-      placeholder="Nom complet"
-      value={name}
-      onChangeText={setName}
-      
-      />
-      <TextInput 
-      style={styles.input} 
-      placeholder="Téléphone ex: +228 90000BS" 
-      keyboardType="phone-pad" 
-      value={telephone}
-      onChangeText={setTelephone}
-      />
-      <TextInput 
-      style={styles.input} 
-      placeholder="Entrez votre Mot de passe" 
-      secureTextEntry 
-      value={password}
-      onChangeText={setPassword}
-      />
-      <TextInput 
-      style={styles.input} 
-      placeholder="Confirmez votre Mot de passe" 
-      secureTextEntry 
-      value={password_confirmation}
-      onChangeText={setConfirmPassword}
-      />
-      <Button
-        title={loading ? "Inscription..." : "S'inscrire"}
-        onPress={handleRegister}
-        disabled={loading}
-      />
-      <TouchableOpacity style={styles.linkContainer} onPress={() => router.replace('../login')}>
-        <Text style={styles.linkText}>Vous avez déjà un compte ? Connectez-vous</Text>
-      </TouchableOpacity>
-    </View>
+    <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <View style={styles.container}>
+        <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
+        <Text style={styles.title}>Veuillez remplir les informations pour vous connecter</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Nom complet"
+          value={name}
+          onChangeText={setName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Téléphone ex: +228 90000BS"
+          keyboardType="phone-pad"
+          value={telephone}
+          onChangeText={setTelephone}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Entrez votre Mot de passe"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirmez votre Mot de passe"
+          secureTextEntry
+          value={password_confirmation}
+          onChangeText={setConfirmPassword}
+        />
+        <Button
+          title={loading ? "Inscription..." : "S'inscrire"}
+          onPress={handleRegister}
+          disabled={loading}
+        />
+        <TouchableOpacity style={styles.linkContainer} onPress={() => router.replace('../login')}>
+          <Text style={styles.linkText}>Vous avez déjà un compte ? Connectez-vous</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 24,
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
