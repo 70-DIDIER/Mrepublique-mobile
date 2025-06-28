@@ -2,23 +2,25 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Dimensions,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  // TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    // TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyCarousel from '../../components/carousel';
 import Header from '../../components/header-1';
 import NouveauxSection from '../../components/nouveauxsection';
 import { colors } from '../../constants/colors';
+import { useCart } from '../../context/CartContext';
 import { getRandomDish } from '../../services/api';
 
 const { height } = Dimensions.get('window');
@@ -27,6 +29,7 @@ const Index = () => {
   const [popularDish, setPopularDish] = useState<any>(null);
   const [loadingPopular, setLoadingPopular] = useState(true);
   const router = useRouter();
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchPopular = async () => {
@@ -59,20 +62,25 @@ const Index = () => {
   const handleDishPress = (id: string) => {
     router.push(`/show/${id}`);
   };
-//  l fonction  qui gère l'ajout au panier
-// const handleOrder = (dish: any) => {
-//     addToCart({
-//       id: dish.id.toString(),
-//       nom: dish.nom || 'Nom inconnu',
-//       prix: parseFloat(dish.prix) || 0,
-//       image_url: dish.image_url || '',
-//       quantity: 1,
-//     });
-//     // Afficher la modale avec le nom du plat
-//     setSelectedDish(dish.nom);
-//     setModalVisible(true);
-//     console.log('Plat ajouté au panier:', dish.nom);
-//   };
+
+  // Fonction pour ajouter au panier et afficher une alerte
+  const handleOrder = (dish: any) => {
+    addToCart({
+      id: dish.id.toString(),
+      nom: dish.nom || 'Nom inconnu',
+      prix: parseFloat(dish.prix) || 0,
+      image_url: dish.image_url || '',
+      quantity: 1,
+    });
+    Alert.alert(
+      'Ajouté au panier',
+      dish.nom ? `${dish.nom} a bien été ajouté au panier !` : 'Plat ajouté au panier !',
+      [
+        { text: 'Voir le panier', onPress: () => router.push('/cart') },
+        { text: 'Fermer', style: 'cancel' },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -82,24 +90,13 @@ const Index = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <Header />
           <View style={styles.content}>
             {/* Carousel */}
             <View style={styles.carousel}>
               <MyCarousel />
             </View>
-            {/* Barre de recherche */}
-            {/* <View style={styles.searchContainer}>
-              <TextInput
-                placeholder="Que cherchez-vous ?"
-                placeholderTextColor="#333"
-                style={styles.input}
-              />
-              <TouchableOpacity style={styles.searchButton}>
-                <Ionicons name="search" size={20} color="white" />
-              </TouchableOpacity>
-            </View> */}
             {/* Catégories */}
             <View style={styles.categoriesContainer}>
               <Text style={styles.title}>Catégories</Text>
@@ -134,10 +131,10 @@ const Index = () => {
                     <Text style={styles.popularDesc} numberOfLines={2}>{popularDish.description}</Text>
                     <View style={styles.popularFooter}>
                       <Text style={styles.popularPrice}>{popularDish.prix} FCFA</Text>
-                      {/* <TouchableOpacity style={styles.buyButton}>
-                        <Text style={styles.buyButtonText}>Acheter</Text>
-                      </TouchableOpacity> */}
-                      <TouchableOpacity style={styles.buyButton} >
+                      <TouchableOpacity
+                        style={styles.buyButton}
+                        onPress={() => handleOrder(popularDish)}
+                      >
                         <Text style={styles.buyButtonText}>Commander</Text>
                       </TouchableOpacity>
                     </View>
@@ -310,5 +307,66 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'red',
     fontSize: 16,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2000,
+    elevation: 20,
+  },
+  modalContentFix: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 24,
+    width: Math.round(Dimensions.get('window').width * 0.9),
+    maxWidth: 400,
+    alignItems: 'center',
+    elevation: 10,
+    zIndex: 1001,
+  },
+  modalIcon: {
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: colors.secondary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  viewCartButton: {
+    backgroundColor: '#72815A',
+  },
+  closeButton: {
+    backgroundColor: '#859163',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

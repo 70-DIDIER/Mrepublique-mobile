@@ -7,10 +7,19 @@
     "entryPoint": "expo-router/entry",
     "platforms": ["ios", "android", "web"],
     "assetBundlePatterns": ["**/*"],
+    "icon": "./assets/images/splash.png",
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "package": "com.tonorganisation.mrepublique",
+      "versionCode": 1
+    },
+    "ios": {
+      "bundleIdentifier": "com.tonorganisation.mrepublique",
+      "buildNumber": "1.0.0"
     }
   }
 }

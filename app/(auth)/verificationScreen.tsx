@@ -43,7 +43,7 @@ const VerificationScreen = () => {
       const response = await verifyCode(phoneNumber, verificationCode);
       console.log('Vérification réussie:', response);
       Alert.alert('Succès', response.message || 'Code vérifié avec succès.');
-      router.replace('../login');
+      router.replace('/(tabs)');
     } catch (error: any) {
       console.error('Erreur lors de la vérification', error);
       const errorMessage = error.response?.data?.message || error.message || 'Une erreur est survenue lors de la vérification du code.';

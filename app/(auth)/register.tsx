@@ -8,19 +8,18 @@ const RegisterScreen = () => {
   const [name, setName] = useState('');
   const [telephone, setTelephone] = useState('');
   const [password, setPassword] = useState('');
-  const [password_confirmation, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name || !telephone || !password || !password_confirmation) {
+    if (!name || !telephone || !password) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
       return;
     }
 
-    if (password !== password_confirmation) {
-      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
-      return;
-    }
+    // if (password !== password_confirmation) {
+    //   Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
+    //   return;
+    // }
 
     try {
       setLoading(true);
@@ -51,7 +50,7 @@ const RegisterScreen = () => {
         />
         <TextInput
           style={styles.input}
-          placeholder="Téléphone ex: +228 90000BS"
+          placeholder="Téléphone ex: 90208099"
           keyboardType="phone-pad"
           value={telephone}
           onChangeText={setTelephone}
@@ -63,13 +62,7 @@ const RegisterScreen = () => {
           value={password}
           onChangeText={setPassword}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmez votre Mot de passe"
-          secureTextEntry
-          value={password_confirmation}
-          onChangeText={setConfirmPassword}
-        />
+        
         <Button
           title={loading ? "Inscription..." : "S'inscrire"}
           onPress={handleRegister}
