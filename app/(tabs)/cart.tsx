@@ -1,5 +1,5 @@
 // (tabs)/cart.tsx
-import { colors } from '@/constants/Colors';
+import { colors } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';

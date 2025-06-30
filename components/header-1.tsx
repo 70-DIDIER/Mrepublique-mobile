@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../constants/Colors'; // Assurez-vous que le chemin est correct
+import { colors } from '../constants/colors'; // Assurez-vous que le chemin est correct
 
 const Header = () => {
   return (
@@ -10,11 +10,11 @@ const Header = () => {
         style={styles.logo}
       />
       <Text style={styles.title}>M&#39;Republique</Text>
-      <Image
+      {/* <Image
         // Vérifie que le chemin est correct
         source={require('../assets/images/profile.png')}
         style={styles.profilePic}
-      />
+      /> */}
     </View>
   );
 };

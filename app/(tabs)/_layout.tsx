@@ -1,6 +1,6 @@
+import { colors } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { colors } from '@/constants/Colors';
 import { useCart } from '../../context/CartContext';
 // import { Keyboard, } from 'react-native';
 // import { useEffect, useState } from 'react';

@@ -1,8 +1,8 @@
+import { colors } from '@/constants/colors';
 import { register as registerApi } from '@/services/api';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { colors } from '@/constants/Colors';
-import { Alert, Button, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const RegisterScreen = () => {
   const router = useRouter();

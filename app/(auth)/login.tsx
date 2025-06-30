@@ -44,7 +44,7 @@ export default function LoginScreen() {
       <View style={styles.container}>
         <Text style={styles.title}>Connexion</Text>
         <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
-        <Text style={styles.subtitle}>Veuillez entrer votre numéro ou e-mail pour vous connecter</Text>
+        <Text style={styles.subtitle}>Veuillez entrer votre numéro  pour vous connecter</Text>
         <TextInput
           placeholder="Téléphone"
           style={styles.input}

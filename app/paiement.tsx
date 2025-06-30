@@ -2,7 +2,7 @@ import axios, { isAxiosError } from 'axios';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { colors } from '../constants/Colors';
+import { colors } from '../constants/colors';
 import { useCart } from '../context/CartContext';
 import { getToken } from '../services/api';
 

@@ -5,7 +5,7 @@ import { useContext, useState } from 'react';
 import { Alert, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header-1';
-import { colors } from '../../constants/Colors';
+import { colors } from '../../constants/colors';
 
 export default function Profile() {
   const { user, logout } = useContext(AuthContext);
