@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { colors } from '../constants/colors';
+import { colors } from '../constants/Colors';
 import { useCart } from '../context/CartContext';
 import { getDishes, getDishesByCategory } from '../services/api';
 
@@ -117,7 +117,7 @@ export default function Show() {
                     <Text style={styles.dishName}>
                       {item.nom || 'Nom inconnu'}{' '}
                     </Text>
-                      <Text style={styles.priceText}>{item.prix || 'Prix inconnu'} FCFA</Text>
+                      <Text style={styles.priceText}>{parseInt(item.prix, 10)} FCFA</Text>
                     <Text style={styles.dishDescription}>
                       {item.description || 'Variante non disponible'}
                     </Text>

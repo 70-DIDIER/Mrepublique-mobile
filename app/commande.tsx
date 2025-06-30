@@ -3,7 +3,7 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { colors } from '../constants/colors';
+import { colors } from '../constants/Colors';
 import { useCart } from '../context/CartContext';
 import { getToken } from '../services/api';
 

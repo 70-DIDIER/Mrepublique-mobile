@@ -19,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MyCarousel from '../../components/carousel';
 import Header from '../../components/header-1';
 import NouveauxSection from '../../components/nouveauxsection';
-import { colors } from '../../constants/colors';
+import { colors } from '../../constants/Colors';
 import { useCart } from '../../context/CartContext';
 import { getRandomDish } from '../../services/api';
 
@@ -130,7 +130,7 @@ const Index = () => {
                     <Text style={styles.popularTitle}>{popularDish.nom}</Text>
                     <Text style={styles.popularDesc} numberOfLines={2}>{popularDish.description}</Text>
                     <View style={styles.popularFooter}>
-                      <Text style={styles.popularPrice}>{popularDish.prix} FCFA</Text>
+                      <Text style={styles.popularPrice}>{parseInt(popularDish.prix, 10)} FCFA</Text>
                       <TouchableOpacity
                         style={styles.buyButton}
                         onPress={() => handleOrder(popularDish)}

@@ -2,7 +2,7 @@ import axios, { isAxiosError } from 'axios';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { colors } from '../constants/colors';
+import { colors } from '../constants/Colors';
 import { useCart } from '../context/CartContext';
 import { getToken } from '../services/api';
 
@@ -142,7 +142,7 @@ export default function Paiement() {
                   <View key={item.id} style={styles.orderSummaryItem}>
                     <Text style={styles.itemName}>{item.nom}</Text>
                     <Text style={styles.itemDetails}>
-                      {item.quantity} x {Number(item.prix).toFixed(2)} FCFA
+                      {item.quantity} x {parseInt(String(item.prix), 10)} FCFA
                     </Text>
                   </View>
                 ))}
@@ -154,7 +154,7 @@ export default function Paiement() {
                 {/* Total général */}
                 <View style={styles.orderSummaryItem}>
                   <Text style={[styles.itemName, { fontWeight: '700' }]}>Total Général</Text>
-                  <Text style={[styles.itemDetails, { fontWeight: '700' }]}>{totalGeneral.toFixed(2)} FCFA</Text>
+                  <Text style={[styles.itemDetails, { fontWeight: '700' }]}>{parseInt(totalGeneral.toString(), 10)} FCFA</Text>
                 </View>
               </>
             ) : (

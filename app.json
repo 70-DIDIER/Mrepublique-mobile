@@ -1,10 +1,8 @@
 {
   "expo": {
-    "name": "M'republique",
+    "name": "M'Republique",
     "slug": "Mrepublique",
-    "scheme": "Mrepublique",
     "version": "1.0.0",
-    "entryPoint": "expo-router/entry",
     "platforms": ["ios", "android", "web"],
     "assetBundlePatterns": ["**/*"],
     "icon": "./assets/images/splash.png",
@@ -20,6 +18,11 @@
     "ios": {
       "bundleIdentifier": "com.tonorganisation.mrepublique",
       "buildNumber": "1.0.0"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8d1f9362-80d1-4d05-abbb-de801204e671"
+      }
     }
   }
 }

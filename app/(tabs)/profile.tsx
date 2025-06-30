@@ -1,14 +1,15 @@
 import { AuthContext } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useContext } from 'react';
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useContext, useState } from 'react';
+import { Alert, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header-1';
-import { colors } from '../../constants/colors';
+import { colors } from '../../constants/Colors';
 
 export default function Profile() {
   const { user, logout } = useContext(AuthContext);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -20,6 +21,18 @@ export default function Profile() {
     }
   };
 
+  // Fonction de confirmation avant déconnexion
+  const confirmLogout = () => {
+    Alert.alert(
+      'Déconnexion',
+      'Voulez-vous vraiment vous déconnecter ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Oui', onPress: handleLogout },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
     <View style={styles.container}>
@@ -29,12 +42,12 @@ export default function Profile() {
           <Image source={require('../../assets/images/profile.png')} style={styles.profileImage} />
           <View>
             <Text style={styles.name}>{user?.name || 'Utilisateur'}</Text>
-            <Text style={styles.email}>{user?.telephone || 'Non connecté'}</Text>
+            <Text style={styles.email}>{user?.telephone}</Text>
           </View>
         </View>
 
         <View style={styles.optionsContainer}>
-          <TouchableOpacity style={styles.option} onPress={handleLogout}>
+          <TouchableOpacity style={styles.option} onPress={confirmLogout}>
             <View style={styles.optionContent}>
               <Ionicons name="log-out-outline" size={24} color={colors.primary} />
               <Text style={styles.optionText}>Déconnexion</Text>
@@ -42,7 +55,7 @@ export default function Profile() {
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.option}>
+          <TouchableOpacity style={styles.option} onPress={() => setModalVisible(true)}>
             <View style={styles.optionContent}>
               <Ionicons name="headset-outline" size={24} color={colors.primary} />
               <Text style={styles.optionText}>Service client</Text>
@@ -50,13 +63,13 @@ export default function Profile() {
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.option}>
+          {/* <TouchableOpacity style={styles.option}>
             <View style={styles.optionContent}>
               <Ionicons name="location-outline" size={24} color={colors.primary} />
               <Text style={styles.optionText}>Adresses</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity style={styles.option}>
             <View style={styles.optionContent}>
@@ -74,23 +87,57 @@ export default function Profile() {
             <Ionicons name="chevron-forward" size={20} color="#666" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.option}>
+          {/* <TouchableOpacity style={styles.option}>
             <View style={styles.optionContent}>
               <Ionicons name="gift-outline" size={24} color={colors.primary} />
               <Text style={styles.optionText}>Bonus Fidélité</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity style={styles.option}>
+          {/* <TouchableOpacity style={styles.option}>
             <View style={styles.optionContent}>
               <Ionicons name="settings-outline" size={24} color={colors.primary} />
               <Text style={styles.optionText}>Réglages</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#666" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0,0,0,0.5)'
+        }}>
+          <View style={{
+            width: 300,
+            backgroundColor: 'white',
+            borderRadius: 10,
+            padding: 20,
+            alignItems: 'center'
+          }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 10 }}>Informations du restaurant</Text>
+            <Text>Nom : Maison de la République</Text>
+            <Text>Téléphone : +228 99 57 71 07</Text>
+            <Text>Email : contact@mrepublique.com</Text>
+            <Text>Adresse : 123, Lomégan près du campus de l'université de Lomé</Text>
+            <Pressable
+              style={{ marginTop: 20, backgroundColor: colors.primary, padding: 10, borderRadius: 5 }}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={{ color: 'white' }}>Fermer</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   </SafeAreaView>  
   );

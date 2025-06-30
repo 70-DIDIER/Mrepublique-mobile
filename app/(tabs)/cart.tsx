@@ -1,10 +1,10 @@
 // (tabs)/cart.tsx
-import React from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Platform, Alert } from 'react-native';
+import { colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@/constants/colors';
-import { useCart } from '../../context/CartContext';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { Alert, FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCart } from '../../context/CartContext';
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity } = useCart();
@@ -30,7 +30,7 @@ export default function Cart() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Mes commandes</Text>
+      {/* <Text style={styles.title}>Mes commandes</Text> */}
       {cart.length > 0 ? (
         <>
           <FlatList
@@ -49,8 +49,12 @@ export default function Cart() {
                   />
                   <View style={styles.cartInfo}>
                     <Text style={styles.cartName}>{item.nom}</Text>
-                    <Text style={styles.cartDescription}>{'description' in item ? (item as any).description || 'Variante non disponible' : 'Variante non disponible'}</Text>
-                    <Text style={styles.cartPrice}>{item.prix} F CFA</Text>
+                    <Text style={styles.cartDescription}>
+                      {'description' in item ? (item as any).description || 'Variante non disponible' : 'Variante non disponible'}
+                    </Text>
+                    <Text style={styles.cartPrice}>
+                      {parseInt(String(item.prix), 10)} FCFA
+                    </Text>
                     <View style={styles.quantityContainer}>
                       <TouchableOpacity
                         onPress={() => {
@@ -79,7 +83,7 @@ export default function Cart() {
             }}
           />
           <View style={styles.footer}>
-            <Text style={styles.totalText}>TOTAL: {total.toFixed(2)} F CFA</Text>
+            <Text style={styles.totalText}>TOTAL: {parseInt(total.toString(), 10)} F CFA</Text>
             <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
               <Text style={styles.checkoutButtonText}>Acheter</Text>
             </TouchableOpacity>
@@ -93,7 +97,7 @@ export default function Cart() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: colors.white, marginTop: 60 },
+  container: { flex: 1, padding: 10, backgroundColor: colors.white },
   title: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: colors.text },
   cartItem: {
     flexDirection: 'row',

@@ -1,6 +1,7 @@
 import { register as registerApi } from '@/services/api';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { colors } from '@/constants/Colors';
 import { Alert, Button, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const RegisterScreen = () => {
@@ -63,11 +64,14 @@ const RegisterScreen = () => {
           onChangeText={setPassword}
         />
         
-        <Button
+        <TouchableOpacity style={styles.butt} onPress={handleRegister}>
+          <Text style={styles.buttonText}>{loading ? "Inscription..." : "S'inscrire"}</Text>
+        </TouchableOpacity>
+        {/* <Button
           title={loading ? "Inscription..." : "S'inscrire"}
           onPress={handleRegister}
           disabled={loading}
-        />
+        /> */}
         <TouchableOpacity style={styles.linkContainer} onPress={() => router.replace('../login')}>
           <Text style={styles.linkText}>Vous avez déjà un compte ? Connectez-vous</Text>
         </TouchableOpacity>
@@ -129,6 +133,12 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#2e78b7',
     textDecorationLine: 'underline'
+  },
+  butt:{
+    backgroundColor: colors.primary,
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
   }
 });
 
