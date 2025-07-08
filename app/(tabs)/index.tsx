@@ -101,7 +101,7 @@ const Index = () => {
             <View style={styles.categoriesContainer}>
               <Text style={styles.title}>Catégories</Text>
               <View style={styles.categories}>
-                {['Entré', 'Résistance', 'Déssert', 'Rafraîchissement'].map((item, index) => (
+                {['Entrées', 'Résistance', 'Déssert', 'Rafraîchissement'].map((item, index) => (
                   <TouchableOpacity
                     key={index}
                     style={styles.categoryButton}

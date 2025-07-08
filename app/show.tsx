@@ -85,6 +85,9 @@ export default function Show() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={28} color={colors.primary} />
+      </TouchableOpacity>
       <TextInput
         style={styles.searchBar}
         placeholder="Rechercher un plat..."
@@ -175,7 +178,12 @@ export default function Show() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: colors.white, marginTop: 60 },
+  container: { 
+    flex: 1, 
+    padding: 10, 
+    backgroundColor: colors.white, 
+    paddingTop: 70, // <-- augmente ici (au lieu de marginTop: 60)
+  },
   title: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: colors.text },
   message: { textAlign: 'center', color: colors.secondary, fontSize: 16 },
   error: { textAlign: 'center', color: 'red', fontSize: 16 },
@@ -252,6 +260,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: colors.text,
     backgroundColor: '#f5f5f5',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 15,
+    left: 10,
+    zIndex: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 2,
+    elevation: 2,
   },
   // Styles pour la modale
   modalOverlay: {

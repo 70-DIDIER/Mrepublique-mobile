@@ -12,7 +12,7 @@ export default function Menu() {
     { id: '4', title: 'Soda', image: require('../../assets/images/soda.png') },
     { id: '5', title: 'Dinner', image: require('../../assets/images/dinner.png') },
     { id: '6', title: 'Bière', image: require('../../assets/images/biere.png') },
-    { id: '7', title: 'Entrer', image: require('../../assets/images/entrer.png') },
+    { id: '7', title: 'Entrées', image: require('../../assets/images/entrer.png') },
     { id: '8', title: 'Vains', image: require('../../assets/images/vains.png') },
     { id: '9', title: 'Deser', image: require('../../assets/images/deser.png') },
     { id: '10', title: 'Apéritif', image: require('../../assets/images/apperitif.png') },

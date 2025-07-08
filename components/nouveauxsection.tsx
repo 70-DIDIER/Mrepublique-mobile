@@ -1,25 +1,41 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { View, Text, ScrollView, Image, StyleSheet } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const nouveaux = [
+  { image: require('../assets/images/nv1.png'), category: 'Entrées' },
+  { image: require('../assets/images/nv2.png'), category: 'Résistance' },
+  { image: require('../assets/images/nv3.png'), category: 'Déssert' },
+  { image: require('../assets/images/nv4.png'), category: 'Rafraîchissement' },
+  { image: require('../assets/images/nv5.png'), category: 'Spécial' },
+];
 
 const NouveauxSection = () => {
-  const images = [
-    require('../assets/images/nv1.png'),
-    require('../assets/images/nv2.png'),
-    require('../assets/images/nv3.png'),
-    require('../assets/images/nv4.png'),
-    require('../assets/images/nv5.png'),
-  ];
+  const router = useRouter();
+
+  const handleCategoryPress = (category: string) => {
+    router.push({
+      pathname: '/show',
+      params: { category: category.toLowerCase() },
+    });
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Nouveaux</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollView}>
-        {images.map((image, index) => (
-          <Image
+        {nouveaux.map((item, index) => (
+          <TouchableOpacity
             key={index}
-            source={image}
-            style={styles.image}
-          />
+            onPress={() => handleCategoryPress(item.category)}
+            style={{ alignItems: 'center', marginHorizontal: 5 }}
+          >
+            <Image
+              source={item.image}
+              style={styles.image}
+            />
+            <Text style={styles.catLabel}>{item.category}</Text>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>
@@ -28,23 +44,8 @@ const NouveauxSection = () => {
 
 const styles = StyleSheet.create({
   container: {
-
     marginTop: 30,
     paddingVertical: 10,
-  },
-  labelContainer: {
-    backgroundColor: '#333',
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-    marginRight: 10,
-  },
-  label: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    transform: [{ rotate: '-90deg' }],
-    width: 100,
-    textAlign: 'center',
   },
   scrollView: {
     flexDirection: 'row',
@@ -53,7 +54,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    marginHorizontal: 5,
     borderWidth: 2,
     borderColor: '#fff',
   },
@@ -62,6 +62,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10,
     marginBottom: 10,
+  },
+  catLabel: {
+    marginTop: 6,
+    fontSize: 13,
+    color: '#72815A',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
