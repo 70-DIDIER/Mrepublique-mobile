@@ -30,7 +30,7 @@ const RegisterScreen = () => {
       console.log('Inscription réussie:', response);
 
       Alert.alert('Succès', 'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.');
-      router.replace({ pathname: '../verificationScreen', params: { telephone: telephone } });
+      router.replace({ pathname: '../verificationScreen', params: { telephone, password } });
     } catch (error: any) {
       console.error('Erreur lors de l\'inscription', error);
       const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue. Veuillez réessayer.';
@@ -81,16 +81,22 @@ const RegisterScreen = () => {
           onChangeText={setPassword}
         />
         
-        <TouchableOpacity style={styles.butt} onPress={handleRegister}>
-          <Text style={styles.buttonText}>{loading ? "Inscription..." : "S'inscrire"}</Text>
-        </TouchableOpacity>
-        {/* <Button
-          title={loading ? "Inscription..." : "S'inscrire"}
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleRegister}
           disabled={loading}
-        /> */}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Inscription...' : "S'inscrire"}
+          </Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.linkContainer} onPress={() => router.replace('../login')}>
-          <Text style={styles.linkText}>Vous avez déjà un compte ? Connectez-vous</Text>
+          <Text style={styles.linkText}>
+            Vous avez déjà un compte ?{' '}
+            <Text style={styles.linkAction}>Connectez-vous</Text>
+          </Text>
         </TouchableOpacity>
       </View>
       </ScrollView>
@@ -145,31 +151,34 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    height: 40,
-    backgroundColor: '#4CAF50',
+    height: 50,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 5,
-    marginTop: 10,
+    borderRadius: 14,
+    marginTop: 20,
+  },
+  buttonDisabled: {
+    backgroundColor: '#b5c0a4',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
   },
   linkContainer: {
-    marginTop: 16,
-    alignItems: 'center'
+    marginTop: 20,
+    alignItems: 'center',
   },
   linkText: {
-    color: '#2e78b7',
-    textDecorationLine: 'underline'
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
   },
-  butt:{
-    backgroundColor: colors.primary,
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-  }
+  linkAction: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
 });
 
 export default RegisterScreen;

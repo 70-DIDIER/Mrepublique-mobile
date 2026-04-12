@@ -1,12 +1,12 @@
-// import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { setStatusBarStyle, StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
   Dimensions,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -34,6 +34,8 @@ const POPULAR_CARD_HEIGHT = 145;
 const Index = () => {
   const [popularDishes, setPopularDishes] = useState<any[]>([]);
   const [loadingPopular, setLoadingPopular] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedDish, setSelectedDish] = useState<string | null>(null);
   const router = useRouter();
   const { addToCart } = useCart();
 
@@ -70,11 +72,14 @@ const Index = () => {
     });
   };
 
-  const handleDishPress = (id: string) => {
-    router.push(`/show/${id}`);
+  const handleDishPress = (item: any) => {
+    if (item.categorie) {
+      router.push({ pathname: '/show', params: { category: item.categorie.toLowerCase() } });
+    } else {
+      router.push('/show');
+    }
   };
 
-  // Fonction pour ajouter au panier et afficher une alerte
   const handleOrder = (dish: any) => {
     addToCart({
       id: dish.id.toString(),
@@ -83,19 +88,43 @@ const Index = () => {
       image_url: dish.image_url || '',
       quantity: 1,
     });
-    Alert.alert(
-      'Ajouté au panier',
-      dish.nom ? `${dish.nom} a bien été ajouté au panier !` : 'Plat ajouté au panier !',
-      [
-        { text: 'Voir le panier', onPress: () => router.push('/cart') },
-        { text: 'Fermer', style: 'cancel' },
-      ]
-    );
+    setSelectedDish(dish.nom || null);
+    setModalVisible(true);
+  };
+
+  const goToCart = () => {
+    setModalVisible(false);
+    router.push('/(tabs)/cart');
   };
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <StatusBar style="light" />
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Ionicons name="checkmark-circle" size={48} color="#72815A" style={styles.modalIcon} />
+            <Text style={styles.modalTitle}>Ajouté au panier !</Text>
+            <Text style={styles.modalMessage}>
+              {selectedDish ? `${selectedDish} a bien été ajouté au panier.` : 'Plat ajouté au panier.'}
+            </Text>
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity style={[styles.modalButton, styles.viewCartButton]} onPress={goToCart}>
+                <Text style={styles.modalButtonText}>Voir le panier</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, styles.closeButton]} onPress={() => setModalVisible(false)}>
+                <Text style={styles.modalButtonText}>Fermer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -148,7 +177,7 @@ const Index = () => {
                         <TouchableOpacity
                           style={styles.popularCard}
                           activeOpacity={0.92}
-                          onPress={() => handleDishPress(item.id)}
+                          onPress={() => handleDishPress(item)}
                         >
                           <Image
                             source={{ uri: getImageUrl(item.image_url) }}
@@ -337,54 +366,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 2000,
-    elevation: 20,
   },
-  modalContentFix: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 24,
-    width: Math.round(Dimensions.get('window').width * 0.9),
-    maxWidth: 400,
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 28,
+    width: width * 0.85,
     alignItems: 'center',
-    elevation: 10,
-    zIndex: 1001,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modalIcon: {
-    marginBottom: 10,
+    marginBottom: 12,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 19,
+    fontWeight: '700',
     color: colors.text,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   modalMessage: {
-    fontSize: 16,
-    color: colors.secondary,
+    fontSize: 15,
+    color: '#777',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    lineHeight: 22,
   },
   modalButtonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     width: '100%',
+    gap: 10,
   },
   modalButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
     flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: 'center',
-    marginHorizontal: 5,
   },
   viewCartButton: {
     backgroundColor: '#72815A',
@@ -394,7 +418,7 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

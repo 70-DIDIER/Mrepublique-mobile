@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useContext, useState } from 'react';
 import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors } from '@/constants/Colors';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -81,11 +82,20 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
         <Text style={styles.forgotPassword}>Mot de passe oublié ?</Text>
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={loading}
+          activeOpacity={0.85}
+        >
           <Text style={styles.buttonText}>{loading ? 'Connexion...' : 'Connexion'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => router.replace('../register')}>
-          <Text style={styles.buttonText}>Creer compte</Text>
+        <TouchableOpacity
+          style={styles.buttonOutline}
+          onPress={() => router.replace('../register')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.buttonOutlineText}>Créer un compte</Text>
         </TouchableOpacity>
         <Text style={styles.welcomeText}>Bienvenu à la maison de la république{'\n'}votre restaurant idéal</Text>
       </View>
@@ -170,27 +180,48 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   forgotPassword: {
-    color: 'red',
+    color: colors.primary,
     marginBottom: 16,
     alignSelf: 'flex-end',
+    fontSize: 13,
   },
   button: {
     width: '100%',
-    height: 40,
-    backgroundColor: '#4a704a',
+    height: 50,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 8,
+    borderRadius: 14,
+    marginBottom: 12,
+  },
+  buttonDisabled: {
+    backgroundColor: '#b5c0a4',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  buttonOutline: {
+    width: '100%',
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    marginBottom: 12,
+  },
+  buttonOutlineText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
   welcomeText: {
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
-    color: '#666',
+    color: '#aaa',
     marginTop: 16,
+    lineHeight: 20,
   },
 });

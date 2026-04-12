@@ -1,7 +1,9 @@
-import { verifyCode } from '@/services/api';
+import { AuthContext } from '@/context/AuthContext';
+import { login, verifyCode } from '@/services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Image,
@@ -24,8 +26,10 @@ const VerificationScreen = () => {
   const [timer, setTimer] = useState(TIMER_DURATION);
   const hiddenInputRef = useRef<TextInput>(null);
   const router = useRouter();
-  const { telephone } = useLocalSearchParams();
+  const { setToken } = useContext(AuthContext);
+  const { telephone, password } = useLocalSearchParams();
   const phoneNumber = typeof telephone === 'string' ? telephone : '';
+  const passwordParam = typeof password === 'string' ? password : '';
 
   useFocusEffect(
     useCallback(() => {
@@ -68,9 +72,34 @@ const VerificationScreen = () => {
     }
     try {
       setLoading(true);
+
       const response = await verifyCode(phoneNumber, code);
-      Alert.alert('Succès', response.message || 'Code vérifié avec succès.');
-      router.replace('/(tabs)');
+
+      // Cas 1 : l'API verify retourne directement un token
+      if (response?.token) {
+        await AsyncStorage.setItem('token', response.token);
+        setToken(response.token);
+        router.replace('/(tabs)');
+        return;
+      }
+
+      // Cas 2 : pas de token dans verify → auto-login avec les credentials
+      if (passwordParam) {
+        const loginResponse = await login(phoneNumber, passwordParam);
+        if (loginResponse?.token) {
+          await AsyncStorage.setItem('token', loginResponse.token);
+          setToken(loginResponse.token);
+          router.replace('/(tabs)');
+          return;
+        }
+      }
+
+      // Cas 3 : fallback — rediriger vers login manuellement
+      Alert.alert(
+        'Compte vérifié',
+        'Votre compte est activé. Connectez-vous pour continuer.',
+        [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+      );
     } catch (error: any) {
       const msg =
         error.response?.data?.message ||
