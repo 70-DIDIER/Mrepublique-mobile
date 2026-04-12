@@ -1,10 +1,18 @@
-import { router } from 'expo-router';
-import React from 'react';
-import { Image, ScrollView,  StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { setStatusBarStyle } from 'expo-status-bar';
+import React, { useCallback } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import MyCarousel from '../../components/carousel';
 import Header from '../../components/header-1';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
 export default function Menu() {
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarStyle('light');
+    }, [])
+  );
+
   const menuItems = [
     { id: '1', title: 'Petit déjeuner', image: require('../../assets/images/petiti_dejener.png') },
     { id: '2', title: 'cocktail', image: require('../../assets/images/cocktail.png') },
@@ -20,7 +28,6 @@ export default function Menu() {
 
   return (
   <SafeAreaView edges={['top']} style={styles.safeArea}>
-    <StatusBar barStyle="light-content" translucent={false} backgroundColor="#72815A" />
     <View style={styles.container}>
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -88,6 +95,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   safeArea: {
+    backgroundColor: '#72815A',
     flex: 1,
     // backgroundColor: '#72815A',
   }

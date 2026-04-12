@@ -11,9 +11,20 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "statusBar": {
+      "style": "dark-content",
+      "backgroundColor": "#ffffff",
+      "translucent": false
+    },
     "android": {
       "package": "com.tonorganisation.mrepublique",
-      "versionCode": 1
+      "versionCode": 1,
+      "statusBar": {
+        "style": "dark-content",
+        "backgroundColor": "#ffffff",
+        "translucent": false
+      },
+      "edgeToEdgeEnabled": false
     },
     "ios": {
       "bundleIdentifier": "com.tonorganisation.mrepublique",

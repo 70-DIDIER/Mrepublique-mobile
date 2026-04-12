@@ -1,9 +1,11 @@
 import axios, { isAxiosError } from 'axios';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { colors } from '../constants/colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors } from '../constants/Colors';
 import { useCart } from '../context/CartContext';
 import { getToken } from '../services/api';
 
@@ -109,7 +111,9 @@ export default function Commande() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent}>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <StatusBar style="dark" />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.container}>
         <Text style={styles.title}>Finaliser votre commande</Text>
         <View style={styles.section}>
@@ -165,21 +169,37 @@ export default function Commande() {
         </View>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.white },
   scrollContent: {
     flexGrow: 1,
     backgroundColor: colors.white,
     paddingVertical: 20,
   },
-  container: { flex: 1, padding: 20, backgroundColor: colors.white, marginTop: 20 },
+  container: { flex: 1, padding: 20, backgroundColor: colors.white },
   title: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: colors.text },
   section: { marginBottom: 20 },
   label: { fontSize: 16, fontWeight: 'bold', color: colors.text, marginBottom: 5 },
-  input: { borderWidth: 1, borderColor: '#859163', borderRadius: 5, padding: 10, color: colors.text, backgroundColor: '#f5f5f5' },
-  commentInput: { height: 80, textAlignVertical: 'top' },
+  input: {
+    borderWidth: 1,
+    borderColor: '#859163',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
+    color: colors.text,
+    backgroundColor: '#f5f5f5',
+    fontSize: 16,
+    minHeight: 48,
+  },
+  commentInput: {
+    minHeight: 80,
+    textAlignVertical: Platform.OS === 'android' ? 'top' : undefined,
+    paddingTop: Platform.OS === 'ios' ? 12 : 10,
+  },
   infoText: { fontSize: 14, color: colors.secondary },
   errorText: { fontSize: 14, color: 'red' },
   buttonContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },

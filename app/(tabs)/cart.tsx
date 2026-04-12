@@ -1,14 +1,22 @@
 // (tabs)/cart.tsx
-import { colors } from '@/constants/colors';
+import { colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { setStatusBarStyle, StatusBar } from 'expo-status-bar';
+import React, { useCallback } from 'react';
 import { Alert, FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCart } from '../../context/CartContext';
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity } = useCart();
   const router = useRouter();
+
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarStyle('dark');
+    }, [])
+  );
 
   // Calculer le total
   const total = cart.reduce((sum, item) => sum + (parseFloat(String(item.prix)) || 0) * item.quantity, 0);
@@ -29,7 +37,9 @@ export default function Cart() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <StatusBar style="dark" />
+      <View style={styles.container}>
       {/* <Text style={styles.title}>Mes commandes</Text> */}
       {cart.length > 0 ? (
         <>
@@ -92,11 +102,13 @@ export default function Cart() {
       ) : (
         <Text style={styles.emptyMessage}>Votre panier est vide.</Text>
       )}
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: colors.white },
   container: { flex: 1, padding: 10, backgroundColor: colors.white },
   title: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: colors.text },
   cartItem: {

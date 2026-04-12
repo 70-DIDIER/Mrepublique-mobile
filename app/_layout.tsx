@@ -1,4 +1,5 @@
 import { AuthContext, AuthProvider } from "@/context/AuthContext";
+import { StatusBar } from "expo-status-bar";
 import { Slot, useRouter, useSegments } from "expo-router";
 import React, { useCallback, useContext, useEffect } from "react";
 import { ActivityIndicator, Image, View } from "react-native";
@@ -43,6 +44,7 @@ function RootLayoutNav() {
   // Toujours rendre le Slot, même pendant le chargement
   return (
     <CartProvider>
+      <StatusBar style="dark" />
       <Slot />
     </CartProvider>
   );

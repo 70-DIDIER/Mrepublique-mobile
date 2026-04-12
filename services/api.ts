@@ -76,6 +76,19 @@ export const getRandomDish = async () => {
   }
 };
 
+// Récupérer plusieurs plats populaires (mélangés aléatoirement)
+export const getPopularDishes = async (count = 6) => {
+  try {
+    const dishes = await getDishes();
+    if (!Array.isArray(dishes) || dishes.length === 0) return [];
+    const shuffled = [...dishes].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(count, shuffled.length));
+  } catch (error) {
+    console.error('Erreur lors de la récupération des plats populaires:', error);
+    return [];
+  }
+};
+
 // Autres fonctions (inchangées)
 // export const register = (data: { name: string; email: string; password: string }) =>
 //   api.post('/register', data);

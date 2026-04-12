@@ -7,25 +7,31 @@ import img2 from '../assets/images/img2.png';
 import img3 from '../assets/images/img3.png';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = width - 50; // Largeur de l'écran moins les marges (20px de chaque côté)
-const CARD_HEIGHT = 200; // Réduction de la hauteur fixe
+const CARD_HEIGHT = 200;
+const CARD_WIDTH = width - 40;  // largeur visible de chaque slide
+const GAP = 16;                  // espace entre deux slides
+const CARD_STEP = CARD_WIDTH + GAP; // distance parcourue par swipe
+const SIDE_OFFSET = (width - CARD_STEP) / 2; // décalage pour centrer la slide courante
 const images = [img1, img2, img3];
 
 const MyCarousel = () => {
   return (
-    <View style={{ flex: 1, paddingHorizontal: 20 }}>
+    <View style={{ flex: 1, overflow: 'hidden' }}>
       <Carousel
-        width={CARD_WIDTH}
+        width={CARD_STEP}
         height={CARD_HEIGHT}
+        style={{ width, marginLeft: SIDE_OFFSET }}
         data={images}
-        scrollAnimationDuration={1000}
+        scrollAnimationDuration={900}
         autoPlay={true}
         renderItem={({ item }) => (
-          <Image
-            source={item}
-            style={{ width: '100%', height: 200, borderRadius: 25 }}
-            resizeMode="cover"
-          />
+          <View style={{ paddingHorizontal: GAP / 2 }}>
+            <Image
+              source={item}
+              style={{ width: CARD_WIDTH, height: CARD_HEIGHT, borderRadius: 20 }}
+              resizeMode="cover"
+            />
+          </View>
         )}
       />
     </View>

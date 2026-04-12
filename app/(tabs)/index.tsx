@@ -1,6 +1,7 @@
 // import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { setStatusBarStyle, StatusBar } from 'expo-status-bar';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -8,38 +9,48 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
-  // TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
+import Carousel from 'react-native-reanimated-carousel';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyCarousel from '../../components/carousel';
 import Header from '../../components/header-1';
 import NouveauxSection from '../../components/nouveauxsection';
-import { colors } from '../../constants/colors';
+import { colors } from '../../constants/Colors';
 import { useCart } from '../../context/CartContext';
-import { getRandomDish } from '../../services/api';
+import { getPopularDishes } from '../../services/api';
 
-const { height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
+const POPULAR_CARD_WIDTH = width - 40;
+const POPULAR_GAP = 16;
+const POPULAR_STEP = POPULAR_CARD_WIDTH + POPULAR_GAP;
+const POPULAR_OFFSET = (width - POPULAR_STEP) / 2;
+const POPULAR_CARD_HEIGHT = 145;
 
 const Index = () => {
-  const [popularDish, setPopularDish] = useState<any>(null);
+  const [popularDishes, setPopularDishes] = useState<any[]>([]);
   const [loadingPopular, setLoadingPopular] = useState(true);
   const router = useRouter();
   const { addToCart } = useCart();
+
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarStyle('light');
+    }, [])
+  );
 
   useEffect(() => {
     const fetchPopular = async () => {
       setLoadingPopular(true);
       try {
-        const dish = await getRandomDish();
-        console.log('Plat populaire récupéré :', dish);
-        setPopularDish(dish);
+        const dishes = await getPopularDishes(6);
+        setPopularDishes(dishes);
       } catch (error) {
-        console.error('Erreur lors de la récupération du plat populaire :', error);
+        console.error('Erreur lors de la récupération des plats populaires :', error);
       } finally {
         setLoadingPopular(false);
       }
@@ -84,7 +95,7 @@ const Index = () => {
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <StatusBar barStyle="light-content" translucent={false} backgroundColor="#72815A" />
+      <StatusBar style="light" />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -121,30 +132,47 @@ const Index = () => {
               <Text style={styles.title}>Populaire</Text>
               {loadingPopular ? (
                 <Text style={styles.loadingText}>Chargement...</Text>
-              ) : popularDish ? (
-                <TouchableOpacity
-                  style={styles.popularCard}
-                  onPress={() => handleDishPress(popularDish.id)}
-                >
-                  <View style={styles.popularContent}>
-                    <Text style={styles.popularTitle}>{popularDish.nom}</Text>
-                    <Text style={styles.popularDesc} numberOfLines={2}>{popularDish.description}</Text>
-                    <View style={styles.popularFooter}>
-                      <Text style={styles.popularPrice}>{parseInt(popularDish.prix, 10)} FCFA</Text>
-                      <TouchableOpacity
-                        style={styles.buyButton}
-                        onPress={() => handleOrder(popularDish)}
-                      >
-                        <Text style={styles.buyButtonText}>Commander</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  <Image
-                    source={{ uri: getImageUrl(popularDish.image_url) }}
-                    style={styles.popularImage}
-                    resizeMode="cover"
+              ) : popularDishes.length > 0 ? (
+                <View style={{ overflow: 'hidden' }}>
+                  <Carousel
+                    width={POPULAR_STEP}
+                    height={POPULAR_CARD_HEIGHT}
+                    style={{ width, marginLeft: POPULAR_OFFSET }}
+                    data={popularDishes}
+                    scrollAnimationDuration={700}
+                    autoPlay={true}
+                    autoPlayInterval={3500}
+                    loop
+                    renderItem={({ item }) => (
+                      <View style={{ paddingHorizontal: POPULAR_GAP / 2 }}>
+                        <TouchableOpacity
+                          style={styles.popularCard}
+                          activeOpacity={0.92}
+                          onPress={() => handleDishPress(item.id)}
+                        >
+                          <Image
+                            source={{ uri: getImageUrl(item.image_url) }}
+                            style={styles.popularImage}
+                            resizeMode="cover"
+                          />
+                          <View style={styles.popularContent}>
+                            <Text style={styles.popularTitle} numberOfLines={1}>{item.nom}</Text>
+                            <Text style={styles.popularDesc} numberOfLines={2}>{item.description}</Text>
+                            <View style={styles.popularFooter}>
+                              <Text style={styles.popularPrice}>{parseInt(item.prix, 10)} FCFA</Text>
+                              <TouchableOpacity
+                                style={styles.buyButton}
+                                onPress={() => handleOrder(item)}
+                              >
+                                <Text style={styles.buyButtonText}>Commander</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   />
-                </TouchableOpacity>
+                </View>
               ) : (
                 <Text style={styles.errorText}>Aucun plat populaire trouvé.</Text>
               )}
@@ -161,7 +189,7 @@ export default Index;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    // backgroundColor: '#ffffff',
+    backgroundColor: '#72815A',
   },
   container: {
     flex: 1,
@@ -241,35 +269,41 @@ const styles = StyleSheet.create({
   },
   popularCardContainer: {
     marginVertical: 10,
-    paddingHorizontal: 16,
+    marginBottom: 24,
   },
   popularCard: {
     flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: 15,
-    padding: 10,
-    alignItems: 'center',
+    borderRadius: 16,
+    overflow: 'hidden',
+    height: POPULAR_CARD_HEIGHT,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    marginBottom: 10,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  popularImage: {
+    width: 120,
+    height: POPULAR_CARD_HEIGHT,
+    backgroundColor: '#eee',
   },
   popularContent: {
     flex: 1,
-    marginRight: 10,
+    padding: 12,
+    justifyContent: 'space-between',
   },
   popularTitle: {
     fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
+    fontSize: 15,
     color: colors.text,
   },
   popularDesc: {
-    fontSize: 13,
-    color: '#555',
-    marginBottom: 8,
+    fontSize: 12,
+    color: '#777',
+    lineHeight: 17,
+    flex: 1,
+    marginVertical: 4,
   },
   popularFooter: {
     flexDirection: 'row',
@@ -278,25 +312,19 @@ const styles = StyleSheet.create({
   },
   popularPrice: {
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 14,
     color: colors.primary,
   },
   buyButton: {
     backgroundColor: colors.primary,
-    borderRadius: 5,
-    paddingHorizontal: 18,
+    borderRadius: 20,
+    paddingHorizontal: 14,
     paddingVertical: 6,
   },
   buyButtonText: {
     color: 'white',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  popularImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 15,
-    backgroundColor: '#eee',
+    fontWeight: '600',
+    fontSize: 12,
   },
   loadingText: {
     textAlign: 'center',

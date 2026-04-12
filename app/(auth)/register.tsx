@@ -1,8 +1,10 @@
-import { colors } from '@/constants/colors';
+import { colors } from '@/constants/Colors';
 import { register as registerApi } from '@/services/api';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const RegisterScreen = () => {
   const router = useRouter();
@@ -39,19 +41,33 @@ const RegisterScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <StatusBar style="dark" />
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       <View style={styles.container}>
         <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
         <Text style={styles.title}>Veuillez remplir les informations pour vous connecter</Text>
         <TextInput
           style={styles.input}
           placeholder="Nom complet"
+          placeholderTextColor="#999"
           value={name}
           onChangeText={setName}
+          autoCapitalize="words"
         />
         <TextInput
           style={styles.input}
           placeholder="Téléphone ex: 90208099"
+          placeholderTextColor="#999"
           keyboardType="phone-pad"
           value={telephone}
           onChangeText={setTelephone}
@@ -59,6 +75,7 @@ const RegisterScreen = () => {
         <TextInput
           style={styles.input}
           placeholder="Entrez votre Mot de passe"
+          placeholderTextColor="#999"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
@@ -76,16 +93,26 @@ const RegisterScreen = () => {
           <Text style={styles.linkText}>Vous avez déjà un compte ? Connectez-vous</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  keyboardView: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     backgroundColor: '#fff',
     paddingVertical: 24,
+    paddingBottom: 48,
   },
   container: {
     flex: 1,
@@ -106,12 +133,15 @@ const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    height: 40,
+    minHeight: 48,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 10,
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
+    fontSize: 16,
+    color: '#333',
   },
   button: {
     width: '100%',

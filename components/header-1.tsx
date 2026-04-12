@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { colors } from '../constants/colors'; // Assurez-vous que le chemin est correct
+import { colors } from '../constants/Colors'; // Assurez-vous que le chemin est correct
 
 const Header = () => {
   return (

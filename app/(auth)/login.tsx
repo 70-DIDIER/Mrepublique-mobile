@@ -2,8 +2,10 @@ import { AuthContext } from '@/context/AuthContext';
 import { login } from '@/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React, { useContext, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -40,23 +42,36 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <StatusBar style="dark" />
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
+      >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       <View style={styles.container}>
         <Text style={styles.title}>Connexion</Text>
         <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
         <Text style={styles.subtitle}>Veuillez entrer votre numéro  pour vous connecter</Text>
         <TextInput
           placeholder="Téléphone"
+          placeholderTextColor="#999"
           style={styles.input}
           value={identifiant}
           onChangeText={setIdentifiant}
           autoCapitalize="none"
-          keyboardType="email-address"
+          keyboardType="phone-pad"
         />
         <View style={styles.passwordContainer}>
           <TextInput
             placeholder="Mot de passe"
-            style={styles.input}
+            placeholderTextColor="#999"
+            style={styles.passwordInput}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -74,16 +89,26 @@ export default function LoginScreen() {
         </TouchableOpacity>
         <Text style={styles.welcomeText}>Bienvenu à la maison de la république{'\n'}votre restaurant idéal</Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  keyboardView: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     backgroundColor: '#fff',
     paddingVertical: 24,
+    paddingBottom: 48,
   },
   container: {
     flex: 1,
@@ -113,9 +138,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     marginBottom: 8,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
     borderRadius: 8,
     width: '100%',
+    minHeight: 48,
+    fontSize: 16,
+    color: '#333',
+  },
+  passwordInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
+    borderRadius: 8,
+    minHeight: 48,
+    fontSize: 16,
+    color: '#333',
+    paddingRight: 44,
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -126,6 +167,7 @@ const styles = StyleSheet.create({
   eyeIcon: {
     position: 'absolute',
     right: 12,
+    padding: 4,
   },
   forgotPassword: {
     color: 'red',

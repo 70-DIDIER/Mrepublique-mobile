@@ -1,15 +1,22 @@
 import { AuthContext } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useContext, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { setStatusBarStyle } from 'expo-status-bar';
+import { useCallback, useContext, useState } from 'react';
 import { Alert, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../../components/header-1';
-import { colors } from '../../constants/colors';
+import { colors } from '../../constants/Colors';
 
 export default function Profile() {
   const { user, logout } = useContext(AuthContext);
   const [modalVisible, setModalVisible] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarStyle('light');
+    }, [])
+  );
 
   const handleLogout = async () => {
     try {
@@ -207,6 +214,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   safeArea: {
+    backgroundColor: '#72815A',
     flex: 1,
     // backgroundColor: '#72815A',
   },

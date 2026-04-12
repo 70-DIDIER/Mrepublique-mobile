@@ -1,19 +1,39 @@
 import { verifyCode } from '@/services/api';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const TIMER_DURATION = 60; // durée en secondes
+const TIMER_DURATION = 60;
+const CODE_LENGTH = 4;
 
 const VerificationScreen = () => {
-  const [code, setCode] = useState(['', '', '', '']);
-  const inputs = useRef<TextInput[]>([]);
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(TIMER_DURATION);
+  const hiddenInputRef = useRef<TextInput>(null);
   const router = useRouter();
   const { telephone } = useLocalSearchParams();
   const phoneNumber = typeof telephone === 'string' ? telephone : '';
-  const [timer, setTimer] = useState(TIMER_DURATION);
 
-  // Gestion du timer
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setHidden?.(false);
+    }, [])
+  );
+
+  // Timer countdown
   useEffect(() => {
     if (timer === 0) return;
     const interval = setInterval(() => {
@@ -22,163 +42,294 @@ const VerificationScreen = () => {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleChange = (text: string, index: number) => {
-    const newCode = [...code];
-    newCode[index] = text;
-    setCode(newCode);
+  // Auto-focus à l'ouverture
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      hiddenInputRef.current?.focus();
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, []);
 
-    if (text && index < code.length - 1) {
-      inputs.current[index + 1]?.focus();
+  const handleChange = (text: string) => {
+    // Ne garder que les chiffres, max CODE_LENGTH
+    const digits = text.replace(/\D/g, '').slice(0, CODE_LENGTH);
+    setCode(digits);
+
+    // Auto-submit si code complet
+    if (digits.length === CODE_LENGTH) {
+      hiddenInputRef.current?.blur();
     }
   };
 
   const handleVerify = async () => {
-    const verificationCode = code.join('');
-    if (verificationCode.length !== 4) {
-      Alert.alert('Erreur', 'Veuillez entrer le code à 4 chiffres.');
+    if (code.length !== CODE_LENGTH) {
+      Alert.alert('Erreur', `Veuillez entrer le code à ${CODE_LENGTH} chiffres.`);
       return;
     }
-
     try {
-      const response = await verifyCode(phoneNumber, verificationCode);
-      console.log('Vérification réussie:', response);
+      setLoading(true);
+      const response = await verifyCode(phoneNumber, code);
       Alert.alert('Succès', response.message || 'Code vérifié avec succès.');
       router.replace('/(tabs)');
     } catch (error: any) {
-      console.error('Erreur lors de la vérification', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Une erreur est survenue lors de la vérification du code.';
-      Alert.alert('Échec', errorMessage);
+      const msg =
+        error.response?.data?.message ||
+        error.message ||
+        'Une erreur est survenue.';
+      Alert.alert('Échec', msg);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleResend = () => {
+    setCode('');
     setTimer(TIMER_DURATION);
-    // Ici tu peux appeler l'API pour renvoyer le code si besoin
+    hiddenInputRef.current?.focus();
     Alert.alert('Info', 'Un nouveau code a été envoyé.');
   };
 
+  const timerLabel = `${String(Math.floor(timer / 60)).padStart(2, '0')}:${String(timer % 60).padStart(2, '0')}`;
+
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-      <View style={styles.container}>
-        <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Vérification</Text>
-        <Text style={styles.subtitle}>
-          Nous vous avons envoyé un code à {phoneNumber}. Vérifiez votre papier si vous ne voyez pas ce code.
-        </Text>
-        <View style={styles.codeContainer}>
-          {code.map((digit, index) => (
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <StatusBar style="dark" />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={styles.logo}
+          />
+
+          <Text style={styles.title}>Vérification</Text>
+          <Text style={styles.subtitle}>
+            Un code a été envoyé au{'\n'}
+            <Text style={styles.phone}>{phoneNumber}</Text>
+          </Text>
+
+          {/* Zone OTP — tap pour ouvrir le clavier */}
+          <TouchableOpacity
+            style={styles.codeContainer}
+            onPress={() => hiddenInputRef.current?.focus()}
+            activeOpacity={1}
+          >
+            {Array.from({ length: CODE_LENGTH }).map((_, i) => {
+              const isFocused = code.length === i;
+              const isFilled = i < code.length;
+              return (
+                <View
+                  key={i}
+                  style={[
+                    styles.codeBox,
+                    isFilled && styles.codeBoxFilled,
+                    isFocused && styles.codeBoxActive,
+                  ]}
+                >
+                  <Text style={styles.codeDigit}>{code[i] ?? ''}</Text>
+                  {isFocused && <View style={styles.cursor} />}
+                </View>
+              );
+            })}
+
+            {/* Input caché — capture frappe + coller + auto-fill SMS */}
             <TextInput
-              key={index}
-              ref={ref => { inputs.current[index] = ref!; }}
-              style={styles.codeInput}
-              keyboardType="numeric"
-              maxLength={1}
-              value={digit}
-              onChangeText={text => handleChange(text, index)}
+              ref={hiddenInputRef}
+              value={code}
+              onChangeText={handleChange}
+              maxLength={CODE_LENGTH}
+              keyboardType="number-pad"
+              textContentType="oneTimeCode"
+              autoComplete={Platform.OS === 'android' ? 'sms-otp' : 'one-time-code'}
+              style={styles.hiddenInput}
+              caretHidden
             />
-          ))}
-        </View>
-        <TouchableOpacity style={styles.modifyButton}>
-          <Text style={styles.modifyText}>Modifier</Text>
-        </TouchableOpacity>
-        <Text style={styles.timer}>
-          {timer > 0
-            ? `Vous avez ${String(Math.floor(timer / 60)).padStart(2, '0')}:${String(timer % 60).padStart(2, '0')} sec`
-            : "Code expiré"}
-        </Text>
-        <TouchableOpacity
-          style={[styles.button, timer === 0 && { backgroundColor: '#859163' }]}
-          onPress={handleVerify}
-          disabled={timer === 0}
-        >
-          <Text style={styles.buttonText}>Vérifier et continuer</Text>
-        </TouchableOpacity>
-        {timer === 0 && (
-          <TouchableOpacity style={styles.resendButton} onPress={handleResend}>
-            <Text style={styles.resendText}>Renvoyer le code</Text>
           </TouchableOpacity>
-        )}
-      </View>
-    </ScrollView>
+
+          {/* Timer */}
+          {timer > 0 ? (
+            <Text style={styles.timer}>
+              Code expire dans{' '}
+              <Text style={styles.timerBold}>{timerLabel}</Text>
+            </Text>
+          ) : (
+            <Text style={styles.timerExpired}>Code expiré</Text>
+          )}
+
+          {/* Bouton vérifier */}
+          <TouchableOpacity
+            style={[
+              styles.button,
+              (code.length !== CODE_LENGTH || loading || timer === 0) &&
+                styles.buttonDisabled,
+            ]}
+            onPress={handleVerify}
+            disabled={code.length !== CODE_LENGTH || loading || timer === 0}
+          >
+            <Text style={styles.buttonText}>
+              {loading ? 'Vérification...' : 'Vérifier et continuer'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Renvoyer */}
+          {timer === 0 && (
+            <TouchableOpacity style={styles.resendButton} onPress={handleResend}>
+              <Text style={styles.resendText}>Renvoyer le code</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Modifier le numéro */}
+          <TouchableOpacity
+            style={styles.modifyButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.modifyText}>← Modifier le numéro</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   scrollContent: {
     flexGrow: 1,
-    backgroundColor: '#fff',
     justifyContent: 'center',
+    backgroundColor: '#fff',
     paddingVertical: 24,
   },
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 20,
+    paddingHorizontal: 28,
   },
   logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 20,
+    width: 90,
+    height: 90,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#2d2d2d',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 14,
+    color: '#888',
     textAlign: 'center',
-    marginBottom: 20,
+    lineHeight: 22,
+    marginBottom: 36,
   },
+  phone: {
+    fontWeight: '700',
+    color: '#72815A',
+  },
+
+  // ── Boîtes OTP ──────────────────────────────────────
   codeContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '60%',
-    marginBottom: 20,
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 28,
   },
-  codeInput: {
-    width: 50,
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    textAlign: 'center',
-    fontSize: 18,
-    marginHorizontal: 3,
+  codeBox: {
+    width: 58,
+    height: 66,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#ddd',
+    backgroundColor: '#fafafa',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  modifyButton: {
-    marginBottom: 20,
+  codeBoxFilled: {
+    borderColor: '#72815A',
+    backgroundColor: '#F0F3EA',
   },
-  modifyText: {
-    color: 'red',
-    fontSize: 16,
+  codeBoxActive: {
+    borderColor: '#72815A',
+    borderWidth: 2,
+    backgroundColor: '#fff',
   },
+  codeDigit: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#2d2d2d',
+  },
+  cursor: {
+    position: 'absolute',
+    bottom: 14,
+    width: 2,
+    height: 22,
+    backgroundColor: '#72815A',
+    borderRadius: 1,
+  },
+  // Input invisible qui reçoit le focus et les frappes
+  hiddenInput: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+    pointerEvents: 'none',
+  },
+
+  // ── Timer ────────────────────────────────────────────
   timer: {
-    fontSize: 14,
-    marginBottom: 20,
+    fontSize: 13,
+    color: '#999',
+    marginBottom: 28,
   },
+  timerBold: {
+    fontWeight: '700',
+    color: '#72815A',
+  },
+  timerExpired: {
+    fontSize: 13,
+    color: '#e05c5c',
+    marginBottom: 28,
+  },
+
+  // ── Boutons ──────────────────────────────────────────
   button: {
     width: '100%',
-    height: 40,
+    height: 50,
     backgroundColor: '#72815A',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 5,
-    marginBottom: 10,
+    borderRadius: 14,
+    marginBottom: 12,
+  },
+  buttonDisabled: {
+    backgroundColor: '#b5c0a4',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
   },
   resendButton: {
-    marginTop: 10,
+    marginBottom: 16,
+    paddingVertical: 8,
   },
   resendText: {
-    color: '#2e78b7',
+    color: '#72815A',
+    fontSize: 15,
+    fontWeight: '600',
     textDecorationLine: 'underline',
-    fontSize: 16,
+  },
+  modifyButton: {
+    paddingVertical: 8,
+  },
+  modifyText: {
+    color: '#aaa',
+    fontSize: 13,
   },
 });
 
