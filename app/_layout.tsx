@@ -12,6 +12,7 @@ function RootLayoutNav() {
 
   const handleNavigation = useCallback(() => {
     if (loading) return; // Ne pas naviguer pendant le chargement
+    
 
     const inAuthGroup = segments[0] === "(auth)";
 

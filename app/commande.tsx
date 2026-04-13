@@ -1,13 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import axios, { isAxiosError } from 'axios';
+import * as Clipboard from 'expo-clipboard';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -16,47 +19,170 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../constants/Colors';
 import { useCart } from '../context/CartContext';
 import { getToken } from '../services/api';
 
+const DEFAULT_COORDS = { latitude: 6.17501, longitude: 1.23041 };
+
 export default function Commande() {
   const { cart } = useCart();
   const router = useRouter();
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const mapRef = useRef<MapView>(null);
+
+  const [location, setLocation] = useState(DEFAULT_COORDS);
+  const [selectedLocation, setSelectedLocation] = useState(DEFAULT_COORDS);
   const [adresseLivraison, setAdresseLivraison] = useState('');
   const [commentaire, setCommentaire] = useState('');
   const [locationPermission, setLocationPermission] = useState(false);
   const [locationLoading, setLocationLoading] = useState(true);
+  const [mapModalVisible, setMapModalVisible] = useState(false);
+  const [tempLocation, setTempLocation] = useState(DEFAULT_COORDS);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
       setLocationLoading(true);
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Erreur', 'Permission de localisation refusée.');
         setLocationPermission(false);
         setLocationLoading(false);
         return;
       }
       setLocationPermission(true);
-      let userLocation = await Location.getCurrentPositionAsync({});
-      setLocation({
+      const userLocation = await Location.getCurrentPositionAsync({});
+      const coords = {
         latitude: userLocation.coords.latitude,
         longitude: userLocation.coords.longitude,
-      });
+      };
+      setLocation(coords);
+      setSelectedLocation(coords);
+      setTempLocation(coords);
       setLocationLoading(false);
     })();
   }, []);
 
   const total = cart.reduce((sum, item) => sum + item.prix * item.quantity, 0);
 
+  const openMapPicker = () => {
+    setTempLocation(selectedLocation);
+    setMapModalVisible(true);
+  };
+
+  const confirmMapLocation = () => {
+    setSelectedLocation(tempLocation);
+    setMapModalVisible(false);
+    setSearchQuery('');
+  };
+
+  // Recherche d'adresse via geocoding
+  const searchAddress = async () => {
+    if (!searchQuery.trim()) return;
+    Keyboard.dismiss();
+    setSearchLoading(true);
+    try {
+      const results = await Location.geocodeAsync(searchQuery.trim());
+      if (results.length > 0) {
+        const { latitude, longitude } = results[0];
+        const coords = { latitude, longitude };
+        setTempLocation(coords);
+        mapRef.current?.animateToRegion({ ...coords, latitudeDelta: 0.01, longitudeDelta: 0.01 }, 600);
+      } else {
+        Alert.alert('Introuvable', 'Aucun résultat pour cette adresse. Essayez d\'être plus précis.');
+      }
+    } catch {
+      Alert.alert('Erreur', 'Impossible de rechercher cette adresse.');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Extrait les coordonnées d'une URL Google Maps (URL finale après redirection)
+  const extractCoordsFromUrl = (url: string): { lat: number; lng: number } | null => {
+    // Format /@lat,lng,zoom ou /@lat,lng,
+    const atMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (atMatch) return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+
+    // Format ?q=lat,lng ou &q=lat,lng
+    const qMatch = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (qMatch) return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+
+    // Format ?ll=lat,lng
+    const llMatch = url.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (llMatch) return { lat: parseFloat(llMatch[1]), lng: parseFloat(llMatch[2]) };
+
+    // Format /place/.../lat,lng (dans le path)
+    const placeMatch = url.match(/\/(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (placeMatch) return { lat: parseFloat(placeMatch[1]), lng: parseFloat(placeMatch[2]) };
+
+    return null;
+  };
+
+  // Coller une localisation (coordonnées, lien Google Maps classique ou lien court)
+  const pasteLocation = async () => {
+    const text = (await Clipboard.getStringAsync()).trim();
+    if (!text) {
+      Alert.alert('Presse-papiers vide', 'Copiez d\'abord une localisation ou un lien Google Maps.');
+      return;
+    }
+
+    const applyCoords = (lat: number, lng: number) => {
+      if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return false;
+      const coords = { latitude: lat, longitude: lng };
+      setTempLocation(coords);
+      mapRef.current?.animateToRegion({ ...coords, latitudeDelta: 0.01, longitudeDelta: 0.01 }, 600);
+      setSearchQuery('');
+      return true;
+    };
+
+    // 1. Coordonnées brutes : "6.17501, 1.23041" ou "6.17501,1.23041"
+    const coordsMatch = text.match(/^(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)$/);
+    if (coordsMatch) {
+      applyCoords(parseFloat(coordsMatch[1]), parseFloat(coordsMatch[2]));
+      return;
+    }
+
+    // 2. Lien Google Maps classique (URL longue)
+    if (text.includes('google.com/maps') || text.includes('maps.google')) {
+      const result = extractCoordsFromUrl(text);
+      if (result && applyCoords(result.lat, result.lng)) return;
+    }
+
+    // 3. Lien court : maps.app.goo.gl ou goo.gl/maps — on suit la redirection
+    if (text.includes('goo.gl') || text.includes('maps.app')) {
+      setSearchLoading(true);
+      try {
+        const response = await fetch(text, { method: 'GET' });
+        const finalUrl = response.url;
+        const result = extractCoordsFromUrl(finalUrl);
+        if (result && applyCoords(result.lat, result.lng)) return;
+        // Si pas de coords dans l'URL finale, essayer le contenu HTML
+        const html = await response.text();
+        const htmlResult = extractCoordsFromUrl(html);
+        if (htmlResult && applyCoords(htmlResult.lat, htmlResult.lng)) return;
+        Alert.alert('Introuvable', 'Impossible d\'extraire la position depuis ce lien.');
+      } catch {
+        Alert.alert('Erreur', 'Impossible de lire ce lien. Vérifiez votre connexion.');
+      } finally {
+        setSearchLoading(false);
+      }
+      return;
+    }
+
+    Alert.alert(
+      'Format non reconnu',
+      'Formats acceptés :\n• Coordonnées : 6.17501, 1.23041\n• Lien Google Maps (long ou court)\n• Lien maps.app.goo.gl'
+    );
+  };
+
   const handleConfirmCommande = async () => {
     Keyboard.dismiss();
     if (!adresseLivraison.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer une adresse de livraison.');
+      // Using inline error is handled by the disabled button state
       return;
     }
 
@@ -69,8 +195,8 @@ export default function Commande() {
         id: parseInt(item.id),
         quantite: item.quantity,
       })),
-      latitude: location?.latitude || 6.17501,
-      longitude: location?.longitude || 1.23041,
+      latitude: selectedLocation.latitude,
+      longitude: selectedLocation.longitude,
       adresse_livraison: adresseLivraison,
       commentaire: commentaire,
     };
@@ -86,23 +212,21 @@ export default function Commande() {
       });
 
       if (response.status === 201 || response.status === 200) {
-        let commandeId =
+        const commandeId =
           response.data.id ||
           response.data.data?.id ||
           response.data.commande?.id ||
           response.data.commande_id ||
           response.data.data?.commande_id;
 
-        if (!commandeId) {
-          throw new Error('Aucun commande_id trouvé dans la réponse.');
-        }
+        if (!commandeId) throw new Error('Aucun commande_id trouvé dans la réponse.');
 
         router.push({
           pathname: '/paiement',
           params: {
             commandeId: commandeId.toString(),
-            latitude: location?.latitude?.toString() || '6.17501',
-            longitude: location?.longitude?.toString() || '1.23041',
+            latitude: selectedLocation.latitude.toString(),
+            longitude: selectedLocation.longitude.toString(),
             adresseLivraison,
             commentaire,
           },
@@ -116,24 +240,14 @@ export default function Commande() {
       } else {
         console.error('Erreur:', (error as Error).message);
       }
-      Alert.alert('Erreur', 'Une erreur est survenue lors de la création de la commande.');
     } finally {
       setLoading(false);
     }
   };
 
-  const locationStatus = () => {
-    if (!locationPermission) return { icon: 'close-circle', color: '#e05c5c', text: 'Localisation non autorisée' };
-    if (locationLoading) return { icon: 'time-outline', color: '#aaa', text: 'Récupération en cours...' };
-    if (location) return {
-      icon: 'checkmark-circle',
-      color: '#72815A',
-      text: `${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`,
-    };
-    return { icon: 'alert-circle', color: '#e05c5c', text: 'Impossible de récupérer la position' };
-  };
-
-  const status = locationStatus();
+  const isUsingGPS =
+    selectedLocation.latitude === location.latitude &&
+    selectedLocation.longitude === location.longitude;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -148,6 +262,7 @@ export default function Commande() {
         <View style={styles.headerSpacer} />
       </View>
 
+      <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: '#F4F5F0' }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -182,15 +297,58 @@ export default function Commande() {
             </View>
           </View>
 
-          {/* Localisation */}
+          {/* Position de livraison */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Ionicons name="location-outline" size={20} color="#72815A" />
-              <Text style={styles.cardTitle}>Votre position</Text>
+              <Text style={styles.cardTitle}>Position de livraison</Text>
             </View>
-            <View style={styles.locationRow}>
-              <Ionicons name={status.icon as any} size={18} color={status.color} />
-              <Text style={[styles.locationText, { color: status.color }]}>{status.text}</Text>
+
+            {/* Mini carte aperçu */}
+            <View style={styles.mapPreviewWrapper}>
+              <MapView
+                style={styles.mapPreview}
+                region={{
+                  latitude: selectedLocation.latitude,
+                  longitude: selectedLocation.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}
+                scrollEnabled={false}
+                zoomEnabled={false}
+                pitchEnabled={false}
+                rotateEnabled={false}
+              >
+                <Marker coordinate={selectedLocation} pinColor="#72815A" />
+              </MapView>
+              {/* Overlay tap pour ouvrir le sélecteur */}
+              <TouchableOpacity style={styles.mapOverlay} onPress={openMapPicker} activeOpacity={0.85}>
+                <View style={styles.mapOverlayBadge}>
+                  <Ionicons name="pencil" size={14} color="#fff" />
+                  <Text style={styles.mapOverlayText}>Modifier la position</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Infos coordonnées */}
+            <View style={styles.coordsRow}>
+              <Ionicons
+                name={locationLoading ? 'time-outline' : locationPermission ? 'checkmark-circle' : 'alert-circle'}
+                size={15}
+                color={locationLoading ? '#aaa' : locationPermission ? '#72815A' : '#e05c5c'}
+              />
+              <Text style={styles.coordsText}>
+                {locationLoading
+                  ? 'Récupération GPS...'
+                  : isUsingGPS
+                  ? `Position GPS · ${selectedLocation.latitude.toFixed(4)}, ${selectedLocation.longitude.toFixed(4)}`
+                  : `Position personnalisée · ${selectedLocation.latitude.toFixed(4)}, ${selectedLocation.longitude.toFixed(4)}`}
+              </Text>
+              {!isUsingGPS && locationPermission && (
+                <TouchableOpacity onPress={() => setSelectedLocation(location)} style={styles.resetGps}>
+                  <Text style={styles.resetGpsText}>GPS</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
@@ -246,18 +404,102 @@ export default function Commande() {
               disabled={!adresseLivraison.trim() || loading}
               activeOpacity={0.85}
             >
-              {loading ? (
-                <Text style={styles.confirmText}>En cours...</Text>
-              ) : (
-                <>
-                  <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
-                  <Text style={styles.confirmText}>Confirmer</Text>
-                </>
-              )}
+              <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+              <Text style={styles.confirmText}>{loading ? 'En cours...' : 'Confirmer'}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      </SafeAreaView>
+
+      {/* Modale sélecteur de carte */}
+      <Modal
+        visible={mapModalVisible}
+        animationType="slide"
+        onRequestClose={() => setMapModalVisible(false)}
+      >
+        <SafeAreaView edges={['top']} style={styles.modalSafe}>
+          <StatusBar style="light" />
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setMapModalVisible(false)} style={styles.backButton}>
+              <Ionicons name="close" size={22} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Choisir la position</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+
+          {/* Barre de recherche */}
+          <View style={styles.searchBarWrapper}>
+            <View style={styles.searchInputRow}>
+              <Ionicons name="search" size={18} color="#999" style={{ marginRight: 8 }} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Rechercher une adresse..."
+                placeholderTextColor="#bbb"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                returnKeyType="search"
+                onSubmitEditing={searchAddress}
+                autoCorrect={false}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={18} color="#ccc" />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.searchBtn} onPress={searchAddress} disabled={searchLoading}>
+                {searchLoading
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Text style={styles.searchBtnText}>OK</Text>
+                }
+              </TouchableOpacity>
+            </View>
+            {/* Bouton coller */}
+            <TouchableOpacity style={styles.pasteButton} onPress={pasteLocation} activeOpacity={0.8}>
+              <Ionicons name="clipboard-outline" size={16} color="#72815A" />
+              <Text style={styles.pasteButtonText}>Coller une localisation</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.mapHint}>
+            <Ionicons name="hand-left-outline" size={16} color="#72815A" />
+            <Text style={styles.mapHintText}>Déplacez le marqueur ou appuyez longtemps</Text>
+          </View>
+
+          <MapView
+            ref={mapRef}
+            style={styles.fullMap}
+            initialRegion={{
+              latitude: tempLocation.latitude,
+              longitude: tempLocation.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+            onLongPress={(e) => setTempLocation(e.nativeEvent.coordinate)}
+          >
+            <Marker
+              coordinate={tempLocation}
+              draggable
+              onDragEnd={(e) => setTempLocation(e.nativeEvent.coordinate)}
+              pinColor="#72815A"
+            />
+          </MapView>
+
+          {/* Coordonnées en bas */}
+          <View style={styles.mapFooter}>
+            <View style={styles.mapCoordsBox}>
+              <Ionicons name="location" size={16} color="#72815A" />
+              <Text style={styles.mapCoordsText}>
+                {tempLocation.latitude.toFixed(5)}, {tempLocation.longitude.toFixed(5)}
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.confirmMapButton} onPress={confirmMapLocation} activeOpacity={0.85}>
+              <Ionicons name="checkmark" size={18} color="#fff" />
+              <Text style={styles.confirmMapText}>Confirmer cette position</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -389,18 +631,60 @@ const styles = StyleSheet.create({
     color: '#72815A',
   },
 
-  // ── Localisation ─────────────────────────────────────
-  locationRow: {
+  // ── Carte aperçu ─────────────────────────────────────
+  mapPreviewWrapper: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 10,
+    height: 150,
+  },
+  mapPreview: {
+    flex: 1,
+  },
+  mapOverlay: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+  },
+  mapOverlayBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#F9FAF6',
-    padding: 12,
+    gap: 5,
+    backgroundColor: '#72815A',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  mapOverlayText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  coordsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  coordsText: {
+    fontSize: 12,
+    color: '#888',
+    flex: 1,
+  },
+  resetGps: {
+    backgroundColor: '#EEF1E6',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 10,
   },
-  locationText: {
-    fontSize: 13,
-    flex: 1,
+  resetGpsText: {
+    fontSize: 11,
+    color: '#72815A',
+    fontWeight: '700',
   },
 
   // ── Inputs ───────────────────────────────────────────
@@ -455,6 +739,112 @@ const styles = StyleSheet.create({
     backgroundColor: '#b5c0a4',
   },
   confirmText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  // ── Modale carte plein écran ──────────────────────────
+  modalSafe: {
+    flex: 1,
+    backgroundColor: '#72815A',
+  },
+  searchBarWrapper: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 8,
+    gap: 8,
+  },
+  searchInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F4F5F0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+    padding: 0,
+  },
+  searchBtn: {
+    backgroundColor: '#72815A',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginLeft: 8,
+  },
+  searchBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  pasteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#EEF1E6',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  pasteButtonText: {
+    color: '#72815A',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  mapHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FAFAFA',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  mapHintText: {
+    fontSize: 12,
+    color: '#aaa',
+  },
+  fullMap: {
+    flex: 1,
+  },
+  mapFooter: {
+    backgroundColor: '#fff',
+    padding: 16,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  mapCoordsBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F4F5F0',
+    padding: 10,
+    borderRadius: 10,
+  },
+  mapCoordsText: {
+    fontSize: 13,
+    color: '#555',
+  },
+  confirmMapButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#72815A',
+    height: 52,
+    borderRadius: 14,
+  },
+  confirmMapText: {
     color: '#fff',
     fontSize: 15,
     fontWeight: '700',
