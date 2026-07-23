@@ -1,12 +1,16 @@
 import { AuthContext } from '@/context/AuthContext';
 import { login, verifyCode } from '@/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Clipboard from 'expo-clipboard';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { setStatusBarHidden, StatusBar } from 'expo-status-bar';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  AppState,
   Image,
+  InteractionManager,
+  Keyboard,
   Platform,
   ScrollView,
   StyleSheet,
@@ -25,15 +29,21 @@ const VerificationScreen = () => {
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(TIMER_DURATION);
   const hiddenInputRef = useRef<TextInput>(null);
+  const submittingRef = useRef(false);
   const router = useRouter();
   const { setToken } = useContext(AuthContext);
   const { telephone, password } = useLocalSearchParams();
   const phoneNumber = typeof telephone === 'string' ? telephone : '';
   const passwordParam = typeof password === 'string' ? password : '';
 
+  // Focus dès que l'écran est actif (après l'animation de transition)
   useFocusEffect(
     useCallback(() => {
-      StatusBar.setHidden?.(false);
+      setStatusBarHidden(false);
+      const task = InteractionManager.runAfterInteractions(() => {
+        hiddenInputRef.current?.focus();
+      });
+      return () => task.cancel();
     }, [])
   );
 
@@ -46,34 +56,20 @@ const VerificationScreen = () => {
     return () => clearInterval(interval);
   }, [timer]);
 
-  // Auto-focus à l'ouverture
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      hiddenInputRef.current?.focus();
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, []);
+  const handleVerify = async (value?: string) => {
+    const codeToVerify = value ?? code;
 
-  const handleChange = (text: string) => {
-    // Ne garder que les chiffres, max CODE_LENGTH
-    const digits = text.replace(/\D/g, '').slice(0, CODE_LENGTH);
-    setCode(digits);
-
-    // Auto-submit si code complet
-    if (digits.length === CODE_LENGTH) {
-      hiddenInputRef.current?.blur();
-    }
-  };
-
-  const handleVerify = async () => {
-    if (code.length !== CODE_LENGTH) {
+    if (codeToVerify.length !== CODE_LENGTH) {
       Alert.alert('Erreur', `Veuillez entrer le code à ${CODE_LENGTH} chiffres.`);
       return;
     }
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+
     try {
       setLoading(true);
 
-      const response = await verifyCode(phoneNumber, code);
+      const response = await verifyCode(phoneNumber, codeToVerify);
 
       // Cas 1 : l'API verify retourne directement un token
       if (response?.token) {
@@ -108,8 +104,46 @@ const VerificationScreen = () => {
       Alert.alert('Échec', msg);
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   };
+
+  const handleChange = (text: string) => {
+    // Ne garder que les chiffres, max CODE_LENGTH
+    const digits = text.replace(/\D/g, '').slice(0, CODE_LENGTH);
+    setCode(digits);
+
+    // Auto-submit dès que le code est complet
+    if (digits.length === CODE_LENGTH) {
+      Keyboard.dismiss();
+      handleVerify(digits);
+    }
+  };
+
+  // Auto-remplissage depuis le presse-papier (Android : l'utilisateur copie le
+  // code du SMS et revient dans l'app). Sur iOS, le clavier propose le code
+  // nativement via textContentType="oneTimeCode".
+  const fillFromClipboard = useCallback(async () => {
+    if (Platform.OS !== 'android') return;
+    try {
+      if (!(await Clipboard.hasStringAsync())) return;
+      const content = await Clipboard.getStringAsync();
+      const match = content?.match(new RegExp(`\\d{${CODE_LENGTH}}`));
+      if (!match) return;
+      setCode((prev) => (prev.length === 0 ? match[0] : prev));
+    } catch {
+      // presse-papier inaccessible : on ignore silencieusement
+    }
+  }, []);
+
+  // Au montage + à chaque retour en avant-plan (après lecture du SMS)
+  useEffect(() => {
+    fillFromClipboard();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') fillFromClipboard();
+    });
+    return () => sub.remove();
+  }, [fillFromClipboard]);
 
   const handleResend = () => {
     setCode('');
@@ -139,12 +173,9 @@ const VerificationScreen = () => {
             <Text style={styles.phone}>{phoneNumber}</Text>
           </Text>
 
-          {/* Zone OTP — tap pour ouvrir le clavier */}
-          <TouchableOpacity
-            style={styles.codeContainer}
-            onPress={() => hiddenInputRef.current?.focus()}
-            activeOpacity={1}
-          >
+          {/* Zone OTP — l'input transparent couvre les cases : le tap ouvre
+              le clavier immédiatement, sans passer par un Touchable. */}
+          <View style={styles.codeContainer}>
             {Array.from({ length: CODE_LENGTH }).map((_, i) => {
               const isFocused = code.length === i;
               const isFilled = i < code.length;
@@ -163,7 +194,8 @@ const VerificationScreen = () => {
               );
             })}
 
-            {/* Input caché — capture frappe + coller + auto-fill SMS */}
+            {/* Input transparent superposé — capture frappe, coller et
+                auto-fill SMS (oneTimeCode iOS / sms-otp Android) */}
             <TextInput
               ref={hiddenInputRef}
               value={code}
@@ -172,10 +204,13 @@ const VerificationScreen = () => {
               keyboardType="number-pad"
               textContentType="oneTimeCode"
               autoComplete={Platform.OS === 'android' ? 'sms-otp' : 'one-time-code'}
-              style={styles.hiddenInput}
+              importantForAutofill="yes"
+              autoFocus
+              style={styles.overlayInput}
+              selectionColor="transparent"
               caretHidden
             />
-          </TouchableOpacity>
+          </View>
 
           {/* Timer */}
           {timer > 0 ? (
@@ -194,7 +229,7 @@ const VerificationScreen = () => {
               (code.length !== CODE_LENGTH || loading || timer === 0) &&
                 styles.buttonDisabled,
             ]}
-            onPress={handleVerify}
+            onPress={() => handleVerify()}
             disabled={code.length !== CODE_LENGTH || loading || timer === 0}
           >
             <Text style={styles.buttonText}>
@@ -263,6 +298,7 @@ const styles = StyleSheet.create({
 
   // ── Boîtes OTP ──────────────────────────────────────
   codeContainer: {
+    position: 'relative',
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 12,
@@ -300,13 +336,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#72815A',
     borderRadius: 1,
   },
-  // Input invisible qui reçoit le focus et les frappes
-  hiddenInput: {
+  // Input transparent posé par-dessus les cases : il reçoit le tap
+  // directement, donc le clavier s'ouvre sans latence.
+  overlayInput: {
     position: 'absolute',
-    width: 1,
-    height: 1,
-    opacity: 0,
-    pointerEvents: 'none',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    color: 'transparent',
+    backgroundColor: 'transparent',
+    fontSize: 24,
+    textAlign: 'center',
   },
 
   // ── Timer ────────────────────────────────────────────

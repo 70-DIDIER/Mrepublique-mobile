@@ -1,10 +1,11 @@
 // (tabs)/cart.tsx
+import { resolveImageUrl } from '@/constants/api';
 import { colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { setStatusBarStyle, StatusBar } from 'expo-status-bar';
 import React, { useCallback } from 'react';
-import { Alert, FlatList, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCart } from '../../context/CartContext';
 
@@ -21,11 +22,8 @@ export default function Cart() {
   // Calculer le total
   const total = cart.reduce((sum, item) => sum + (parseFloat(String(item.prix)) || 0) * item.quantity, 0);
 
-  // Ajuster l'URL de l'image pour l'émulateur
-  const getImageUrl = (imageUrl: string) => {
-    if (!imageUrl) return 'https://via.placeholder.com/80';
-    return Platform.OS === 'android' ? imageUrl.replace('127.0.0.1', '10.0.201.76') : imageUrl;
-  };
+  const getImageUrl = (imageUrl: string) =>
+    resolveImageUrl(imageUrl, 'https://via.placeholder.com/80');
 
   // Rediriger vers l'écran de commande
   const handleCheckout = () => {

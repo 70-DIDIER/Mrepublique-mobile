@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { API_URL } from '../constants/api';
 import { colors } from '../constants/Colors';
 import { useCart } from '../context/CartContext';
 import { getToken } from '../services/api';
@@ -76,7 +77,7 @@ export default function Paiement() {
     const token = await getToken();
     try {
       const response = await axios.post(
-        'https://apirestaurant.mrepublique.com/api/paiements',
+        `${API_URL}/paiements`,
         {
           commande_id: parseInt(commandeId as string),
           methode: paymentMethod,

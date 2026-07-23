@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-
-const API_URL = 'https://apirestaurant.mrepublique.com/api'; 
+import { API_URL } from '../constants/api';
 
 const api = axios.create({
   baseURL: API_URL,

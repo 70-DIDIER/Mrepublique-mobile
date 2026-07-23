@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { setStatusBarStyle, StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
-import { Dimensions, FlatList, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { resolveImageUrl } from '../constants/api';
 import { colors } from '../constants/Colors';
 import { useCart } from '../context/CartContext';
 import { getDishes, getDishesByCategory } from '../services/api';
@@ -63,10 +64,8 @@ export default function Show() {
     fetchDishes();
   }, [category]);
 
-  const getImageUrl = (imageUrl: string) => {
-    if (!imageUrl) return 'https://via.placeholder.com/200';
-    return Platform.OS === 'android' ? imageUrl.replace('127.0.0.1', '10.0.2.2') : imageUrl;
-  };
+  const getImageUrl = (imageUrl: string) =>
+    resolveImageUrl(imageUrl, 'https://via.placeholder.com/200');
 
   const handleOrder = (dish: any) => {
     addToCart({

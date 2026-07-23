@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { API_URL } from '../constants/api';
 import { colors } from '../constants/Colors';
 import { useCart } from '../context/CartContext';
 import { getToken } from '../services/api';
@@ -187,7 +188,7 @@ export default function Commande() {
     }
 
     setLoading(true);
-    const apiUrl = `https://apirestaurant.mrepublique.com/api/commandes`;
+    const apiUrl = `${API_URL}/commandes`;
 
     const commandData = {
       articles: cart.map(item => ({

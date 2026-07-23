@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MyCarousel from '../../components/carousel';
 import Header from '../../components/header-1';
 import NouveauxSection from '../../components/nouveauxsection';
+import { resolveImageUrl } from '../../constants/api';
 import { colors } from '../../constants/Colors';
 import { useCart } from '../../context/CartContext';
 import { getPopularDishes } from '../../services/api';
@@ -60,10 +61,8 @@ const Index = () => {
     fetchPopular();
   }, []);
 
-  const getImageUrl = (imageUrl: string) => {
-    if (!imageUrl) return 'https://via.placeholder.com/100';
-    return Platform.OS === 'android' ? imageUrl.replace('127.0.0.1', '10.0.2.2') : imageUrl;
-  };
+  const getImageUrl = (imageUrl: string) =>
+    resolveImageUrl(imageUrl, 'https://via.placeholder.com/100');
 
   const handleCategoryPress = (category: string) => {
     router.push({
